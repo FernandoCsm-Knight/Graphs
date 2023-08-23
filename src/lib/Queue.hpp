@@ -104,10 +104,10 @@ template <class T> class Queue {
          * @return True if both queues are equal, otherwise false.
          */
         template <class U> friend bool operator==(const Queue<U>& queue1, const Queue<U>& queue2) {
-            bool eq = linkedList1.length == linkedList2.length;
+            bool eq = queue1.length == queue2.length;
             
-            Node<T>* node1 = linkedList1.head;
-            Node<T>* node2 = linkedList2.head;
+            Node<T>* node1 = queue1.head;
+            Node<T>* node2 = queue2.head;
             while(node1 != NULL && eq) {
                 eq = node1->value == node2->value;
                 node1 = node1->next;
@@ -201,9 +201,14 @@ template <class T> class Queue {
 
             Node<T>* node = this->head->next;
             T value = this->head->value;
-            node->prev = nullptr;
             delete this->head;
             this->head = node;
+
+            if(this->head == nullptr)
+                this->tail = nullptr;
+            else
+                this->head->prev = nullptr;
+
             this->length--;
             return value;
         }
@@ -226,7 +231,7 @@ template <class T> class Queue {
          * 
          * @return True if the queue is empty, otherwise false.
          */
-        bool isEmpty() {
+        bool isEmpty() const {
             return this->length == 0;
         }
 

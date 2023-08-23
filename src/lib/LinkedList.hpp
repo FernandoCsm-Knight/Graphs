@@ -206,6 +206,40 @@ template <class T> class LinkedList {
         }
 
         /**
+         * @brief Add an element to the linked list in ascending order.
+         * 
+         * @param element The element to be added.
+         */
+        void addInOrder(const T& element) {
+            Node<T>* node = new Node<T>(element);
+            if (this->head == nullptr) {
+                this->head = node;
+                this->tail = node;
+            } else {
+                Node<T>* current = this->head;
+                while(current != nullptr && current->value < element) {
+                    current = current->next;
+                }
+
+                if(current == nullptr) {
+                    this->tail->next = node;
+                    node->prev = this->tail;
+                    this->tail = node;
+                } else if(current == this->head) {
+                    this->head->prev = node;
+                    node->next = this->head;
+                    this->head = node;
+                } else {
+                    node->next = current;
+                    node->prev = current->prev;
+                    current->prev->next = node;
+                    current->prev = node;
+                }
+            }
+            this->length++;
+        }
+
+        /**
          * @brief Add an element at the beginning of the linked list.
          * 
          * @param value The value to be added.
@@ -304,8 +338,13 @@ template <class T> class LinkedList {
             T value = this->head->value;
             Node<T>* node = this->head;
             this->head = this->head->next;
-            this->head->prev = nullptr;
             delete node;
+
+            if (this->head == nullptr) 
+                this->tail = nullptr;
+            else 
+                this->head->prev = nullptr;
+
             this->length--;
             return value;
         }

@@ -36,8 +36,8 @@
 template <class T> class ArrayList {
     private:
         T* array;                   ///< Pointer to the dynamic array storing elements.
-        unsigned int length;        ///< The current number of elements in the array list.
-        unsigned int maxLength;     ///< The maximum capacity of the dynamic array.
+        int length;                 ///< The current number of elements in the array list.
+        int maxLength;              ///< The maximum capacity of the dynamic array.
         bool dynamic;               ///< Flag indicating if the array can dynamically resize.
 
         // Helper function for resizing the array when necessary.
@@ -46,7 +46,7 @@ template <class T> class ArrayList {
             if (this->dynamic && this->length == this->maxLength) {
                 T* newArray = new T[this->maxLength * 2];
 
-                for (unsigned int i = 0; i < this->length; i++) 
+                for (int i = 0; i < this->length; i++) 
                     newArray[i] = this->array[i];
                 
                 delete[] this->array;
@@ -55,24 +55,43 @@ template <class T> class ArrayList {
             }
         }
 
+        // Helper function for serching using the binary search algorithm.
+
+        int binarySearch(const T& element) const {
+            int l = 0, r = this->length - 1, m = 0;
+            
+            while(l <= r) {
+                m = l + (r - l) / 2;
+
+                if(this->array[m] == element) 
+                    return m;
+                else if(this->array[m] < element)
+                    l = m + 1;
+                else 
+                    r = m - 1;
+            }
+
+            return -1;
+        }
+
         // Helper functions for sorting using the quicksort algorithm.
 
-        void quickSort(long int first, long int last) {
+        void quickSort(int first, int last) {
             if (first < last) {
-                long int pivot = this->partition(first, last);
+                int pivot = this->partition(first, last);
                 this->quickSort(pivot, last);
                 this->quickSort(first, pivot - 1);
             }
         }
 
-        long int partition(long int first, long int last) {
+        int partition(int first, int last) {
             bool isString = typeid(T) == typeid(std::string);
             T pivot = this->array[(first + last) / 2];
 
-            long int i = first, j = last;
+            int i = first, j = last;
 
             while(i <= j) {
-                std::cout << i << " " << j << std::endl;
+
                 if(isString) {
                     while(((std::string)this->array[i]).compare((std::string)pivot) < 0) i++;
                     while(((std::string)this->array[j]).compare((std::string)pivot) > 0) j--;
@@ -91,7 +110,7 @@ template <class T> class ArrayList {
             return i;
         }
 
-        void swap(unsigned int i, unsigned int j) {
+        void swap(int i, int j) {
             T temp = this->array[i];
             this->array[i] = this->array[j];
             this->array[j] = temp;
@@ -106,7 +125,7 @@ template <class T> class ArrayList {
          */
         ArrayList(): length(0), maxLength(2), dynamic(true) {
             this->array = new T[this->maxLength];
-            for(unsigned int i = 0; i < this->maxLength; i++) 
+            for(int i = 0; i < this->maxLength; i++) 
                 this->array[i] = T();
         }
 
@@ -118,13 +137,27 @@ template <class T> class ArrayList {
          * @param capacity The initial capacity of the array list.
          * @throw std::invalid_argument If the capacity is less than or equal to 1.
          */
-        ArrayList(unsigned int capacity): length(0), maxLength(capacity), dynamic(false) {
+        ArrayList(int capacity): length(0), maxLength(capacity), dynamic(false) {
             if (capacity <= 1) 
                 throw std::invalid_argument("The capacity must be greater than 1");
 
             this->array = new T[capacity];
             for(int i = 0; i < capacity; i++) 
                 this->array[i] = T();
+        }
+
+        /**
+         * @brief Construct a new Array List object from an array.
+         * 
+         * @param arr The array to be copied.
+         */
+        ArrayList(T* arr) {
+            this->length = sizeof(arr) / sizeof(arr[0]);
+            this->maxLength = this->length;
+            this->array = new T[this->maxLength];
+            
+            for(int i = 0; i < this->length; i++) 
+                this->array[i] = arr[i];
         }
 
         /**
@@ -136,10 +169,10 @@ template <class T> class ArrayList {
          */
         ArrayList(const ArrayList<T>& arrayList): length(arrayList.length), maxLength(arrayList.maxLength), dynamic(arrayList.dynamic) {
             this->array = new T[arrayList.maxLength];
-            for(unsigned int i = 0; i < arrayList.length; i++) 
+            for(int i = 0; i < arrayList.length; i++) 
                 this->array[i] = arrayList.array[i];
         }
-        
+
         /**
          * @brief Destructor.
          * 
@@ -162,7 +195,7 @@ template <class T> class ArrayList {
                 this->maxLength = arrayList.maxLength;
                 this->dynamic = arrayList.dynamic;
                 this->array = new T[arrayList.maxLength];
-                for(unsigned int i = 0; i < arrayList.length; i++) 
+                for(int i = 0; i < arrayList.length; i++) 
                     this->array[i] = arrayList.array[i];
             }
 
@@ -205,8 +238,8 @@ template <class T> class ArrayList {
          * @param element The element to be added.
          * @throw std::out_of_range If the index is out of range.
          */
-        void add(unsigned int index, const T& element) {
-            if (index > this->length) 
+        void add(int index, const T& element) {
+            if (index < 0 || index > this->length) 
                 throw std::out_of_range("Index out of range");
 
             this->resize();
@@ -215,6 +248,20 @@ template <class T> class ArrayList {
 
             this->array[index] = element;
             this->length++;
+        }
+
+        /**
+         * @brief Add an element to the array list in ascending order.
+         * 
+         * @param element The element to be added.
+         */
+        void addInOrder(const T& element) {
+            int index = 0;
+
+            while(index < this->length && this->array[index] < element)
+                index++;
+
+            this->add(index, element);
         }
 
         /**
@@ -249,15 +296,15 @@ template <class T> class ArrayList {
          * @return T The value of the removed element.
          * @throw std::out_of_range If the index is out of range.
          */
-        T pop(unsigned int index) {
-            if (index >= this->length) 
+        T pop(int index) {
+            if (index < 0 || index >= this->length) 
                 throw std::out_of_range("Index out of range");
 
             T element = this->array[index];
-            for(int i = index; i < this->length; i++) 
+            for(int i = index; i < this->length - 1; i++) 
                 this->array[i] = this->array[i + 1];
 
-            this->length--;
+            this->array[--this->length] = T();
             return element;
         }
 
@@ -270,7 +317,7 @@ template <class T> class ArrayList {
          */
         T pop(const T& element, bool check) {
             int index = -1;
-            if(check)            
+            if(check)
                 index = this->indexOf(element);
             else 
                 index = this->lastIndexOf(element);
@@ -297,7 +344,7 @@ template <class T> class ArrayList {
          * @param index The index of the element to retrieve.
          * @return T The value of the element at the given index.
          */
-        T get(unsigned int index) const {
+        T get(int index) const {
             return this->array[index];
         }
 
@@ -321,8 +368,8 @@ template <class T> class ArrayList {
          * @param element The new value for the element.
          * @throw std::out_of_range If the index is out of range.
          */
-        void set(unsigned int index, const T& element) {
-            if (index >= this->length)
+        void set(int index, const T& element) {
+            if (index < 0 || index >= this->length)
                 throw std::out_of_range("Index out of range");
                 
             this->array[index] = element;
@@ -334,7 +381,7 @@ template <class T> class ArrayList {
         void clear() {
             delete[] this->array;
             this->array = new T[this->maxLength];
-            for (unsigned int i = 0; i < this->length; i++) 
+            for (int i = 0; i < this->length; i++) 
                 this->array[i] = T();
             
             this->length = 0;
@@ -353,38 +400,53 @@ template <class T> class ArrayList {
          * @brief Check if the array list contains the given element.
          * 
          * @param element The element to check for.
+         * @param binary If true, use binary search; otherwise, use linear search.
          * @return bool True if the element exists in the array list; otherwise, false.
          */
-        bool contains(const T& element) const {
-            return this->indexOf(element) != -1;
+        bool contains(const T& element, bool binary = false) const {
+            return this->indexOf(element, binary) != -1;
         }
 
         /**
          * @brief Find the index of the first occurrence of the given element in the array list.
          * 
          * @param element The element to search for.
+         * @param binary If true, use binary search; otherwise, use linear search.
          * @return int The index of the first occurrence of the element, or -1 if not found.
          */
-        int indexOf(const T& element) const {
-            for (unsigned int i = 0; i < this->length; i++) 
-                if (this->array[i] == element) 
-                    return i;
+        int indexOf(const T& element, bool binary = false) const {
+            int idx = -1;
             
-            return -1;
+            if(binary) {
+                idx = this->binarySearch(element);
+            } else {
+                for (int i = 0; idx == -1 && i < this->length; i++) 
+                    if (this->array[i] == element) 
+                        idx = i;
+            }
+            
+            return idx;
         }
 
         /**
          * @brief Find the index of the last occurrence of the given element in the array list.
          * 
          * @param element The element to search for.
+         * @param binary If true, use binary search; otherwise, use linear search.
          * @return int The index of the last occurrence of the element, or -1 if not found.
          */
-        int lastIndexOf(const T& element) const {
-            for (unsigned int i = this->length - 1; i >= 0; i--)
-                if (this->array[i] == element) 
-                    return i;
+        int lastIndexOf(const T& element, bool binary = false) const {
+            int idx = -1;
 
-            return -1;
+            if(binary) {
+                idx = this->binarySearch(element);
+            } else {
+                for (int i = this->length - 1; idx == -1 && i >= 0; i--)
+                    if (this->array[i] == element) 
+                        idx = i;
+            }
+
+            return idx;
         }
 
         /**
@@ -398,7 +460,7 @@ template <class T> class ArrayList {
 
         friend std::ostream& operator<<(std::ostream& strm, const ArrayList<T>& arrayList) {
             strm << "[";
-            for (unsigned int i = 0; i < arrayList.length; i++) {
+            for (int i = 0; i < arrayList.length; i++) {
                 strm << arrayList.array[i];
                 if (i != arrayList.length - 1) 
                     strm << ", ";

@@ -135,7 +135,6 @@ template <class T> class Stack {
             delete temp;
 
             this->length--;
-
             return value;
         }
 
@@ -167,7 +166,7 @@ template <class T> class Stack {
          * 
          * @return True if the stack is empty, otherwise false.
          */
-        bool isEmpty() {
+        bool isEmpty() const {
             return this->length == 0;
         }
 

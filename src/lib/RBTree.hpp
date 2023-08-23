@@ -308,6 +308,16 @@ template <class T> class RBTree {
             return strm;
         }
 
+        friend bool operator==(const RBTree<T>& tree1, const RBTree<T>& tree2) {
+            ArrayList<T> list1 = tree1.toArray();
+            ArrayList<T> list2 = tree2.toArray();
+
+            bool eq = list1.size() == list2.size();
+            for(int i = 0; i < list1.size() && eq; i++)
+                eq = list1[i] == list2[i];
+            return eq;
+        }
+
     public:
 
         /**
@@ -444,12 +454,21 @@ template <class T> class RBTree {
         }
 
         /**
+         * @brief Checks if the tree is empty.
+         * 
+         * @return True if the tree is empty, false otherwise.
+         */
+        bool isEmpty() const {
+            return this->root == nullptr;
+        }
+
+        /**
          * @brief Checks if the tree contains the specified element.
          * 
          * @param element The element to be checked.
          * @return True if the element is present in the tree, false otherwise.
          */
-        bool contains(T element) {
+        bool contains(T element) const {
             Node* curr = this->root;
             while(curr != nullptr) {
                 if(curr->element == element)
@@ -468,7 +487,7 @@ template <class T> class RBTree {
          * @param element The element to be searched.
          * @return T& the element if found, nullptr otherwise.
          */
-        T* search(T element) {
+        T* search(const T& element) const {
             Node* curr = this->root;
             while(curr != nullptr) {
                 if(curr->element == element)

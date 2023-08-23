@@ -31,7 +31,7 @@ template <class T> class Node {
          * 
          * @param value The value to be held by the node.
          */
-        Node(T value): value(value), next(NULL), prev(NULL) {}
+        Node(T value): value(value), next(nullptr), prev(nullptr) {}
 
         /**
          * @brief Construct a new Node object with the given value and set next and prev pointers accordingly.
@@ -102,7 +102,7 @@ template <class T> class Node {
             return this.value = other;
         }
 
-        // Other comparison operator overloads (!=, <, <=, >, >=) follow the same pattern
+        // Other comparison operator overloads (!=, <=, >, >=) follow the same pattern
 
         inline friend bool operator!=(const Node<T>& node1, const Node<T>& node2) { return !(node1.value == node2.value); }
         inline friend bool operator>(const Node<T>& node1, const Node<T>& node2) { return node2 < node1; }

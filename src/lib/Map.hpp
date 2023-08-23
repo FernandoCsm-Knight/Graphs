@@ -21,7 +21,7 @@
 
 #include "ArrayList.hpp"
 #include "LinkedList.hpp"
-#include "helpers/KeyValue.hpp"
+#include "helpers/Pair.hpp"
 #include "RBTree.hpp"
 
 /**
@@ -33,16 +33,16 @@
 template <class K, class V> class Map {
     private:
         unsigned int length; /**< The number of key-value pairs in the map. */
-        RBTree<KeyValue<K, V>> tree; /**< The red-black tree used to store the key-value pairs. */
+        RBTree<Pair<K, V>> tree; /**< The red-black tree used to store the key-value pairs. */
 
         // Friend functions for overloading stream insertion and equality operators.
 
         friend std::ostream& operator<<(std::ostream& strm, const Map<K, V>& map) {
-            ArrayList<KeyValue<K, V>> list = map.tree.toArray();
+            ArrayList<Pair<K, V>> list = map.tree.toArray();
             
             strm << "{" << std::endl;
             for(int i = 0; i < list.size(); i++) {
-                strm << "\t" << list[i];
+                strm << "\t" << list[i].key << ": " << list[i].value;
                 if(i < list.size() - 1)
                     strm << ",";
                 strm << std::endl;
@@ -54,8 +54,8 @@ template <class K, class V> class Map {
         friend bool operator==(const Map<K, V>& map1, const Map<K, V>& map2) {
             bool eq = map1.length == map2.length;
 
-            ArrayList<KeyValue<K, V>> list1 = map1.tree.toArray();
-            ArrayList<KeyValue<K, V>> list2 = map2.tree.toArray();
+            ArrayList<Pair<K, V>> list1 = map1.tree.toArray();
+            ArrayList<Pair<K, V>> list2 = map2.tree.toArray();
 
             for(int i = 0; i < map1.length && eq; i++) 
                 eq = list1[i].key == list2[i].key;
@@ -110,7 +110,7 @@ template <class K, class V> class Map {
          * @param value The value to be associated with the key.
          */
         void put(K key, V value) {
-            tree.add(KeyValue<K, V>(key, value));
+            tree.add(Pair<K, V>(key, value));
             this->length++;
         }
 
@@ -120,10 +120,9 @@ template <class K, class V> class Map {
          * @return V The value associated with the given key.
          * @throw std::runtime_error if the key is not found in the map.
          */
-        V get(K key) {
-            KeyValue<K, V> element = new KeyValue<K, V>(key);
-            V value = tree.search(element).key;
-            delete element;
+        V get(K key) const {
+            Pair<K, V> element = Pair<K, V>(key);
+            V value = tree.search(element)->value;
             return value;
         }
 
@@ -133,8 +132,8 @@ template <class K, class V> class Map {
          * @return V& The value associated with the given key.
          */
         V& operator[](K key) {
-            KeyValue<K, V> element = KeyValue<K, V>(key);
-            KeyValue<K, V>* reached = tree.search(element);
+            Pair<K, V> element = Pair<K, V>(key);
+            Pair<K, V>* reached = tree.search(element);
 
             if(reached != nullptr) 
                 return reached->value;
@@ -151,7 +150,7 @@ template <class K, class V> class Map {
          * @param key The key to remove.
          */
         void remove(K key) {
-            KeyValue<K, V>* element = new KeyValue<K, V>(key);
+            Pair<K, V>* element = new Pair<K, V>(key);
             tree.pop(*element);
             delete element;
             this->length--;
@@ -163,8 +162,8 @@ template <class K, class V> class Map {
          * @return bool true if the key exists in the map, false otherwise.
          */
         bool contains(K key) {
-            KeyValue<K, V> element = new KeyValue<K, V>(key);
-            bool contains = tree.contains(element);
+            Pair<K, V>* element = new Pair<K, V>(key);
+            bool contains = tree.contains(*element);
             delete element;
             return contains;
         }
@@ -174,7 +173,7 @@ template <class K, class V> class Map {
          * @return ArrayList<K> An ArrayList containing all keys in the map.
          */
         ArrayList<K> keys() const {
-            ArrayList<KeyValue<K, V>> list = tree.toArray();
+            ArrayList<Pair<K, V>> list = tree.toArray();
             ArrayList<K> keys = ArrayList<K>();
 
             for(int i = 0; i < list.size(); i++) 
@@ -188,7 +187,7 @@ template <class K, class V> class Map {
          * @return ArrayList<V> An ArrayList containing all values in the map.
          */
         ArrayList<V> values() const {
-            ArrayList<KeyValue<K, V>> list = tree.toArray();
+            ArrayList<Pair<K, V>> list = tree.toArray();
             ArrayList<V> values = ArrayList<V>();
 
             for(int i = 0; i < list.size(); i++) 
@@ -199,10 +198,35 @@ template <class K, class V> class Map {
 
         /**
          * @brief Convert the map to a linked list of key-value pairs.
-         * @return LinkedList<KeyValue<K, V>> A linked list containing all key-value pairs from the map.
+         * @return LinkedList<Pair<K, V>> A linked list containing all key-value pairs from the map.
          */
-        LinkedList<KeyValue<K, V>> toList() {
+        LinkedList<Pair<K, V>> toList() const {
             return tree.toList();
+        }
+
+        /**
+         * @brief Clear all key-value pairs from the map.
+         */
+        void clear() {
+            tree.clear();
+            this->length = 0;
+        }
+
+        /**
+         * @brief Clear all values from the map.
+         */
+        void clearValues() {
+            ArrayList<Pair<K, V>> list = tree.toArray();
+
+            for(int i = 0; i < list.size(); i++) 
+                list[i].value = V();
+
+            tree.clear();
+
+            for(int i = 0; i < list.size(); i++) 
+                tree.add(list[i]);
+
+            this->length = list.size();
         }
 };
 
