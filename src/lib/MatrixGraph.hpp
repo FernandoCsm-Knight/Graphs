@@ -17,13 +17,17 @@
 #ifndef MATRIXGRAPH_HPP
 #define MATRIXGRAPH_HPP
 
+template <class V> class MatrixGraph;
+
 #include <iostream>
 #include <stdexcept>
 
 #include "ArrayList.hpp"
+#include "DepthFirstOrder.hpp"
 #include "Map.hpp"
 #include "Queue.hpp"
 #include "Stack.hpp"
+#include "Tarjan.hpp"
 
 #include "helpers/Edge.hpp"
 #include "helpers/Vertex.hpp"
@@ -36,7 +40,7 @@
 template <class V> class MatrixGraph {
     private:
         char** matrix;                      ///< The adjacency matrix.
-        ArrayList<Vertex<V>> vertexes;      ///< The vertexes of the graph.
+        ArrayList<Vertex<V>> vertices;      ///< The vertices of the graph.
         int length;                         ///< The number of vertices in the graph.
         bool isDir;                         ///< Indicates whether the graph is directed.
 
@@ -48,6 +52,30 @@ template <class V> class MatrixGraph {
                 delete[] this->matrix[i];
             
             delete[] this->matrix;
+        }
+
+        bool* depthFirstSearch(const Vertex<V>& vertex) const {
+            Stack<Vertex<V>> stk;
+            
+            bool* arr = new bool[this->length];
+            for(int i = 0; i < this->length; i++) 
+                arr[i] = false;
+
+            stk.push(vertex);
+            arr[this->vertices.indexOf(vertex, true)] = true;
+            while(!stk.isEmpty()) {
+                Vertex<V> tmp = stk.pop();
+
+                int idx = this->vertices.indexOf(tmp, true);
+                for(int i = 0; i < this->length; i++) {
+                    if(this->matrix[idx][i] == 1 && !arr[i]) {
+                        stk.push(this->vertices.get(i));
+                        arr[i] = true;
+                    }
+                } 
+            }
+
+            return arr;
         }
 
     public:
@@ -64,6 +92,24 @@ template <class V> class MatrixGraph {
          * @param isDir Indicates whether the graph is directed.
          */
         MatrixGraph(bool isDir): matrix(nullptr), length(0), isDir(isDir) {}
+
+        /**
+         * @brief Construct a new Matrix Graph object
+         * 
+         * @param graph The graph to be copied.
+         */
+        MatrixGraph(const MatrixGraph<V>& graph) {
+            this->vertices = graph.vertices;
+            this->length = graph.length;
+            this->isDir = graph.isDir;
+
+            this->matrix = new char*[this->length];
+            for(int i = 0; i < this->length; i++) {
+                this->matrix[i] = new char[this->length];
+                for(int j = 0; j < this->length; j++) 
+                    this->matrix[i][j] = graph.matrix[i][j];
+            }
+        }
 
         /**
          * @brief Destroy the Matrix Graph object.
@@ -98,13 +144,36 @@ template <class V> class MatrixGraph {
         }
 
         /**
+         * @brief Overloaded assignment operator to copy the given graph.
+         * 
+         * @param graph The graph to be copied. 
+         * @return MatrixGraph<V>& The copied graph.
+         */
+        MatrixGraph<V>& operator=(const MatrixGraph<V>& graph) {
+            if(this != &graph) {
+                this->vertices = graph.vertices;
+                this->length = graph.length;
+                this->isDir = graph.isDir;
+
+                this->matrix = new char*[this->length];
+                for(int i = 0; i < this->length; i++) {
+                    this->matrix[i] = new char[this->length];
+                    for(int j = 0; j < this->length; j++) 
+                        this->matrix[i][j] = graph.matrix[i][j];
+                }
+            }
+
+            return *this;
+        }
+
+        /**
          * @brief Returns the given vertex's line in the adjacency matrix.
          * 
          * @param vertex The vertex to get its line.
          * @return char* The vertex's line in the adjacency matrix.
          */
         char* operator[](const Vertex<V>& vertex) const {
-            int index = this->vertexes.indexOf(vertex, true);
+            int index = this->vertices.indexOf(vertex, true);
 
             if(index == -1)
                 throw std::invalid_argument("Vertex not found.");
@@ -132,7 +201,7 @@ template <class V> class MatrixGraph {
          * @return True if the graph contains the given vertex, false otherwise.
          */
         bool contains(const V& label) const {
-            return this->vertexes.contains(Vertex<V>(label), true);
+            return this->vertices.contains(Vertex<V>(label), true);
         }
 
         /**
@@ -143,8 +212,8 @@ template <class V> class MatrixGraph {
          * @return True if the graph contains the given edge, false otherwise.
          */
         bool contains(const V& src, const V& dest) const {
-            int srcIndex = this->vertexes.indexOf(Vertex<V>(src), true), 
-                destIndex = this->vertexes.indexOf(Vertex<V>(dest), true);
+            int srcIndex = this->vertices.indexOf(Vertex<V>(src), true), 
+                destIndex = this->vertices.indexOf(Vertex<V>(dest), true);
 
             if(srcIndex != -1 && destIndex != -1) 
                 return this->matrix[srcIndex][destIndex] != 0;
@@ -161,7 +230,7 @@ template <class V> class MatrixGraph {
             if(this->contains(label))
                 return;
 
-            this->vertexes.addInOrder(Vertex<V>(label));
+            this->vertices.addInOrder(Vertex<V>(label));
 
             if(this->length == 0) {
                 this->matrix = new char*[1];
@@ -189,17 +258,26 @@ template <class V> class MatrixGraph {
         }
 
         /**
+         * @brief Adds a vertex to the graph.
+         * 
+         * @param vertex The vertex to be added.
+         */
+        void addVertex(const Vertex<V>& vertex) {
+            this->addVertex(vertex.getLabel());
+        }
+
+        /**
          * @brief Removes a vertex from the graph.
          * 
          * @param label The label of the vertex to be removed.
          */
         void removeVertex(const V& label) {
-            int index = this->vertexes.indexOf(Vertex<V>(label), true);
+            int index = this->vertices.indexOf(Vertex<V>(label), true);
 
             if(index == -1)
                 return;
 
-            this->vertexes.pop(index);
+            this->vertices.pop(index);
 
             int** tmp = new int*[this->length - 1];
             for(int i = 0, j = 0; i < this->length; i++) {
@@ -223,7 +301,7 @@ template <class V> class MatrixGraph {
 
         /**
          * @brief Adds an edge to the graph. if the 
-         *        graph doesn't contain the given vertexes,
+         *        graph doesn't contain the given vertices,
          *        they will be added.
          * 
          * @param src The source vertex of the edge.
@@ -233,13 +311,36 @@ template <class V> class MatrixGraph {
             this->addVertex(src);
             this->addVertex(dest);
 
-            int srcIndex = this->vertexes.indexOf(Vertex<V>(src), true), 
-                destIndex = this->vertexes.indexOf(Vertex<V>(dest), true);
+            int srcIndex = this->vertices.indexOf(Vertex<V>(src), true), 
+                destIndex = this->vertices.indexOf(Vertex<V>(dest), true);
 
             this->matrix[srcIndex][destIndex] = 1;
 
             if(!this->isDir)
                 this->matrix[destIndex][srcIndex] = 1;
+        }
+
+        /**
+         * @brief Adds an edge to the graph. if the 
+         *        graph doesn't contain the given vertices,
+         *        they will be added.
+         * 
+         * @param edge The edge to be added.
+         */
+        void addEdge(const Edge<V>& edge) {
+            this->addEdge(edge.getSource(), edge.getDestination());
+        }
+
+        /**
+         * @brief Adds an edge to the graph. if the
+         *        graph doesn't contain the given vertices,
+         *        they will be added.
+         * 
+         * @param src The source vertex of the edge.
+         * @param dest The destination vertex of the edge.
+         */
+        void addEdge(const Vertex<V>& src, const Vertex<V>& dest) {
+            this->addEdge(src.getLabel(), dest.getLabel());
         }
 
         /**
@@ -252,8 +353,8 @@ template <class V> class MatrixGraph {
             if(!this->contains(src, dest))
                 return;
 
-            int srcIndex = this->vertexes.indexOf(Vertex<V>(src), true), 
-                destIndex = this->vertexes.indexOf(Vertex<V>(dest), true);
+            int srcIndex = this->vertices.indexOf(Vertex<V>(src), true), 
+                destIndex = this->vertices.indexOf(Vertex<V>(dest), true);
 
             this->matrix[srcIndex][destIndex] = 0;
 
@@ -269,9 +370,9 @@ template <class V> class MatrixGraph {
          */
         Pair<int, int> degree(const V& ver) const {
             if(!this->contains(ver))
-                return -1;
+                return Pair<int, int>(-1);
 
-            int index = this->vertexes.indexOf(Vertex<V>(ver));
+            int index = this->vertices.indexOf(Vertex<V>(ver), true);
 
             if(this->isDir) {
                 int in = 0, out = 0;
@@ -285,7 +386,7 @@ template <class V> class MatrixGraph {
             } else {
                 int degree = 0;
                 for(int i = 0; i < this->length; i++) 
-                    if(this->matrix[index][i] != 0) 
+                    if(this->matrix[index][i] == 1) 
                         degree++;
 
                 return Pair<int, int>(degree);
@@ -301,18 +402,18 @@ template <class V> class MatrixGraph {
             ArrayList<Pair<int, int>> list;
 
             for(int i = 0; i < this->length; i++) 
-                list.add(this->degree(this->vertexes.get(i).getLabel()));
+                list.add(this->degree(this->vertices.get(i).getLabel()));
 
             return list;
         }
 
         /**
-         * @brief Return the vertexes list of the graph.
+         * @brief Return the vertices list of the graph.
          * 
-         * @return ArrayList<Vertex<V>> The vertexes list of the graph.
+         * @return ArrayList<Vertex<V>> The vertices list of the graph.
          */
-        ArrayList<Vertex<V>> getVertexes() const {
-            return this->vertexes;
+        ArrayList<Vertex<V>> getVertices() const {
+            return this->vertices;
         }
 
         /**
@@ -327,26 +428,30 @@ template <class V> class MatrixGraph {
 
             ArrayList<Edge<V>> list;
 
-            int idx = this->vertexes.indexOf(Vertex<V>(ver), true);
-            for(int i = 0; i < this->length; i++) 
-                if(this->matrix[idx][i] == 1) 
-                    list.addInOrder(Edge<V>(Vertex<V>(ver), this->vertexes.get(i)));
+            int idx = this->vertices.indexOf(Vertex<V>(ver), true);
+            for(int i = 0; i < this->length; i++) {
+                if(this->matrix[idx][i] == 1) {
+                    Edge<V> edge(Vertex<V>(ver), this->vertices.get(i));
+                    edge.setDirect(this->isDir);
+                    list.addInOrder(edge);
+                }
+            } 
 
             return list;
         }
 
         /**
          * @brief Return a map containing the edges for all
-         *        vertexes in the graph.
+         *        vertices in the graph.
          * 
          * @return Map<Vertex<V>, ArrayList<Edge<V>>> A map containing the edges for all
-         *                                            vertexes in the graph.
+         *                                            vertices in the graph.
          */
         Map<Vertex<V>, ArrayList<Edge<V>>> getEdges() const {
             Map<Vertex<V>, ArrayList<Edge<V>>> map;
 
             for(int i = 0; i < this->length; i++) 
-                map.put(this->vertexes.get(i), this->getEdges(this->vertexes.get(i)));
+                map.put(this->vertices.get(i), this->getEdges(this->vertices.get(i)));
 
             return map;
         }
@@ -363,19 +468,19 @@ template <class V> class MatrixGraph {
                 ArrayList<Vertex<V>> list;
                 for(int j = 0; j < this->length; j++)
                     if(this->matrix[i][j] == 1)
-                        list.addInOrder(this->vertexes.get(j));
+                        list.addInOrder(this->vertices.get(j));
 
-                adj.put(this->vertexes.get(i), list);                
+                adj.put(this->vertices.get(i), list);                
             }
 
             return adj;
         }
 
         /**
-         * @brief Clears the graph by removing all vertexes and edges.
+         * @brief Clears the graph by removing all vertices and edges.
          */
         void clear() {
-            this->vertexes.clear();
+            this->vertices.clear();
             this->deallocate();
             this->length = 0;
         }
@@ -399,11 +504,11 @@ template <class V> class MatrixGraph {
         friend std::ostream& operator<<(std::ostream& strm, const MatrixGraph<V>& graph) {
             strm << "  ";
             for(int i = 0; i < graph.length; i++) 
-                strm << graph.vertexes.get(i) << " ";
+                strm << graph.vertices.get(i) << " ";
             strm << std::endl;
 
             for(int i = 0; i < graph.length; i++) {
-                strm << graph.vertexes.get(i) << " ";
+                strm << graph.vertices.get(i) << " ";
                 for(int j = 0; j < graph.length; j++) 
                     strm << (int)graph.matrix[i][j] << " ";
                 strm << std::endl;
@@ -412,8 +517,206 @@ template <class V> class MatrixGraph {
             return strm;
         }
 
-        int countComp() {
+        /**
+         * @brief Returns a new graph there is a walk from the given vertex.
+         * 
+         * @param label The vertex to start walking.
+         * @return MatrixGraph<V> A new graph there is a walk from the given vertex.
+         */
+        MatrixGraph<V> walk(const V& label) const {
+            int line = this->vertices.indexOf(Vertex<V>(label), true);
 
+            Map<Vertex<V>, bool> map;
+            MatrixGraph<V> graph;
+            Stack<Vertex<V>> stk;
+
+            for(int i = 0; i < this->length; i++) {
+                if(this->matrix[line][i] == 1) {
+                    stk.push(this->vertices.get(i));
+                    graph.addEdge(this->vertices.get(line), this->vertices.get(i));
+                }
+            }
+
+            while(!stk.isEmpty()) {
+                Vertex<V> ver = stk.pop();
+
+                if(!map.contains(ver)) {
+                    char* arr = this->matrix[this->vertices.indexOf(ver, true)];
+                    for(int i = 0; i < this->length; i++) {
+                        if(arr[i] == 1) {
+                            stk.push(this->vertices.get(i));
+                            graph.addEdge(ver, this->vertices.get(i));
+                        }
+                    }
+                }
+
+                map[ver] = true;
+            }
+
+            return graph;
+        }
+
+        /**
+         * @brief Transpose a digraph.
+         */
+        void transpose() {
+            if(this->isDir) {
+                for(int i = 0; i < this->length; i++) {
+                    for(int j = 0; j < this->length - i; j++) {
+                        char tmp = this->matrix[i + j][i];
+                        this->matrix[i + j][i] = this->matrix[i][i + j];
+                        this->matrix[i][i + j] = tmp;
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Returns a new graph that is the transpose of the given graph.
+         * 
+         * @return MatrixGraph<V> A new graph that is the transpose of the given graph.
+         */
+        MatrixGraph<V> getTranspose() const {
+            MatrixGraph<V> graph = *this;
+            graph.transpose();
+            return graph;
+        }
+
+        /**
+         * @brief Returns a ArrayList containing all the conex components of the graph.
+         * 
+         * @return ArrayList<MatrixGraph<V>> A list containing all the conex components of the graph.
+         */
+        ArrayList<MatrixGraph<V>> getConexComponents() {
+            ArrayList<MatrixGraph<V>> list;
+
+            for(int i = 0; i < this->length; i++) {
+                MatrixGraph<V> graph = this->walk(this->vertices.get(i).getLabel());
+                i += graph.size() - 1;
+                list.add(graph);
+            }
+
+            return list;
+        }
+
+        /**
+         * @brief Returns the number of conex components of the graph.
+         * 
+         * @return int The number of conex components of the graph.
+         */
+        int numberOfComponents() {
+            int num = 0;
+
+            for(int i = 0; i < this->length; i++) {
+                MatrixGraph<V> graph = this->walk(this->vertices.get(i).getLabel());
+                i += graph.size() - 1;
+                num++;
+            }
+
+            return num;
+        }
+        
+        /**
+         * @brief Returns the clasp of the given vertex. The (+) clasp of a vertex v is the set of all vertices
+         *        that are reachable from v in the graph. Also, the (-) clasp of a vertex v is the set of all
+         *        vertices from which v is reachable in the graph.
+         * 
+         * @param label The label of the vertex to get its clasp.
+         * @param type The type of the clasp. (+) for direct clasp and (-) for inverse clasp.
+         * @return ArrayList<Vertex<V>> The clasp of the given vertex.
+         */
+        ArrayList<Vertex<V>> clasp(const V& label, const char& type = '+') const {
+            if(!this->contains(label))
+                throw std::invalid_argument("Vertex not found.");
+
+            if(type != '+' && type != '-') 
+                throw std::invalid_argument("Invalid type.");
+
+            bool* arr = nullptr;
+            ArrayList<Vertex<V>> list;
+            if(type == '+') {
+                arr = this->depthFirstSearch(Vertex<V>(label));
+                for(int i = 0; i < this->length; i++) 
+                    if(arr[i]) list.add(this->vertices.get(i));
+            } else {
+                MatrixGraph<V> graph = this->getTranspose();
+                arr = graph.depthFirstSearch(Vertex<V>(label));
+                for(int i = 0; i < graph.length; i++) 
+                    if(arr[i]) list.add(graph.vertices.get(i));
+            }
+
+            delete[] arr;
+            return list;
+        }
+
+        /**
+         * @brief Returns the start and end times of the given vertex.
+         * 
+         * @param label The label of the vertex to get its times.
+         * @return Map<Vertex<V>, Pair<int, int>> The start and end times of the given vertex.
+         */
+        Map<Vertex<V>, Pair<int, int>> times(const V& label) const {
+            return this->times(Vertex<V>(label));
+        }
+
+        /**
+         * @brief Returns the start and end times of the given vertex.
+         * 
+         * @param vertex The vertex to get its times.
+         * @return Map<Vertex<V>, Pair<int, int>> The start and end times of the given vertex.
+         */
+        Map<Vertex<V>, Pair<int, int>> times(const Vertex<V>& vertex) const {
+            ArrayList<Vertex<V>> list;
+            Stack<Vertex<V>> aux;
+            Map<Vertex<V>, Pair<int, int>> map;
+
+            bool* arr = new bool[this->length];
+            for(int i = 0; i < this->length; i++) 
+                arr[i] = false;
+
+            int time = 0;
+
+            list.addInOrder(vertex);
+            map[vertex] = Pair<int, int>(++time);
+            arr[this->vertices.indexOf(vertex, true)] = true;
+            while(!list.isEmpty()) {
+                Vertex<V> tmp = list.shift();
+                int idx = this->vertices.indexOf(tmp, true);
+
+                aux.push(tmp);
+                for(int i = 0; i < this->length; i++) {
+                    if(this->matrix[idx][i] == 1 && !arr[i]) {
+                        list.addInOrder(this->vertices.get(i));
+                        map[this->vertices.get(i)] = Pair<int, int>(++time);
+                        arr[i] = true;
+                    } 
+                }
+            }
+
+            while(!aux.isEmpty())
+                map[aux.pop()].value = ++time;
+
+            delete[] arr;
+            return map;
+        }
+
+        /**
+         * @brief Returns the strongly connected components of the graph.
+         * 
+         * @return ArrayList<MatrixGraph<V>> The strongly connected components of the graph.
+         */
+        ArrayList<MatrixGraph<V>> tarjan() const {
+            Tarjan<V> tarjan(*this);
+            return tarjan.getScc();
+        }
+
+        /**
+         * @brief Returns the DepthFirstOrder of the graph.
+         * 
+         * @return DepthFirstOrder<V> The topological order of the graph.
+         */
+        DepthFirstOrder<V> depthFirstOrder() const {
+            return DepthFirstOrder<V>(*this);
         }
 };
 
@@ -464,24 +767,24 @@ template <class V> bool isRegular(const MatrixGraph<V>& graph) {
  * @return True if the graph is bipartite, false otherwise.
  */
 template <class V> bool isBipartite(const MatrixGraph<V>& graph) {
-    ArrayList<Vertex<V>> vertexes = graph.getVertexes();
+    ArrayList<Vertex<V>> vertices = graph.getVertices();
     Map<Vertex<V>, bool> colors;
 
-    for(int i = 0; i < vertexes.size(); i++) {
-        if(!colors.contains(vertexes[i])) {
-            colors[vertexes[i]] = true;
+    for(int i = 0; i < vertices.size(); i++) {
+        if(!colors.contains(vertices[i])) {
+            colors[vertices[i]] = true;
             Queue<Vertex<V>> queue;
-            queue.push(vertexes[i]);
+            queue.push(vertices[i]);
 
             while(!queue.isEmpty()) {
                 Vertex<V> vertex = queue.pop();
 
                 for(int j = 0; j < graph.size(); j++) {
                     if(graph[vertex][j] == 1) {
-                        if(!colors.contains(vertexes[j])) {
-                            colors[vertexes[j]] = !colors[vertex];
-                            queue.push(vertexes[j]);
-                        } else if(colors[vertexes[j]] == colors[vertex]) {
+                        if(!colors.contains(vertices[j])) {
+                            colors[vertices[j]] = !colors[vertex];
+                            queue.push(vertices[j]);
+                        } else if(colors[vertices[j]] == colors[vertex]) {
                             return false;
                         }
                     }

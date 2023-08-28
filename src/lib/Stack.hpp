@@ -30,7 +30,7 @@
 template <class T> class Stack {
     private:
         Node<T>* top; ///< Pointer to the top node of the stack.
-        unsigned int length; ///< Number of elements in the stack.
+        int length; ///< Number of elements in the stack.
 
         /**
          * @brief Overloaded friend function for printing the stack elements.
@@ -66,6 +66,22 @@ template <class T> class Stack {
         }
 
         /**
+         * @brief Copy constructor for the Stack class.
+         * 
+         * @param stack The Stack object to be copied.
+         */
+        Stack(const Stack<T>& stack) {
+            this->top = nullptr;
+            this->length = 0;
+
+            Node<T>* temp = stack.top;
+            while(temp != nullptr) {
+                this->push(temp->value);
+                temp = temp->next;
+            }
+        }
+
+        /**
          * @brief Destructor for the Stack class.
          * Clears all the elements in the stack and frees memory.
          */
@@ -88,8 +104,8 @@ template <class T> class Stack {
         Stack<T>& operator=(const Stack<T>& stack) {
             if(this != &stack) {
                 this->clear();
-                Node<T>* temp = stack.top;
 
+                Node<T>* temp = stack.top;
                 while(temp != nullptr) {
                     this->push(temp->value);
                     temp = temp->next;

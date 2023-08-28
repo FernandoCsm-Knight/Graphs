@@ -149,7 +149,10 @@ template <class V> class Edge {
             if(e1.weight != 0.0 && e2.weight != 0.0) 
                 return e1.weight == e2.weight;
 
-            return e1.src == e2.src && e1.dest == e2.dest;
+            if(e1.isDirect() && e2.isDirect()) 
+                return e1.src == e2.src && e1.dest == e2.dest;
+
+            return (e1.src == e2.src && e1.dest == e2.dest) || (e1.src == e2.dest && e1.dest == e2.src);
         }
 
         /**
@@ -163,7 +166,10 @@ template <class V> class Edge {
             if(e1.weight != 0.0 && e2.weight != 0.0) 
                 return e1.weight < e2.weight;
 
-            return e1.src < e2.src && e1.dest < e2.dest;
+            if(e1.src == e2.src) 
+                return e1.dest < e2.dest;
+            else 
+                return e1.src < e2.src;
         }
 
         // Other comparison operator overloads (!=, <=, >, >=) follow the same pattern

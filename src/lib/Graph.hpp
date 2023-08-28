@@ -35,9 +35,8 @@
  */
 template <class V> class Graph {
     private:
-        Map<Vertex<V>, ArrayList<Vertex<V>>> adj; ///< The adjacency list of the graph.
-        Map<Vertex<V>, ArrayList<Edge<V>>> map; ///< The map of vertices to their associated edges.
-        bool isDig; ///< Indicates whether the graph is directed.
+        Map<Vertex<V>, ArrayList<Vertex<V>>> adj;   ///< The adjacency list of the graph.
+        bool isDig;                                 ///< Indicates whether the graph is directed.
 
         /**
          * @brief Removes an edge between two vertices.
@@ -45,28 +44,11 @@ template <class V> class Graph {
          * @param srcVertex The source vertex of the edge.
          * @param destVertex The destination vertex of the edge.
          */
-        void removeEdge(Vertex<V> srcVertex, Vertex<V> destVertex) {
-            Edge<V> edge = Edge<V>(srcVertex, destVertex);
-            edge.setDirect(this->isDig);
-
+        void removeEdge(const Vertex<V>& srcVertex, const Vertex<V>& destVertex) {
             if(!this->isDig) {
-                Edge<V> edge2 = Edge<V>(destVertex, srcVertex);
-                if(map.contains(srcVertex)) {
-                    if(map[srcVertex].contains(edge)) map[srcVertex].pop(edge, true);
-                    else map[srcVertex].pop(edge2, true);
-                }
-
-                if(map.contains(destVertex)) {
-                    if(map[destVertex].contains(edge)) map[destVertex].pop(edge, true);
-                    else map[destVertex].pop(edge2, true);
-                }
-
                 if(adj.contains(srcVertex)) adj[srcVertex].pop(destVertex, true);
                 if(adj.contains(destVertex)) adj[destVertex].pop(srcVertex, true);
-            } else {
-                if(map.contains(srcVertex)) map[srcVertex].pop(edge, true);
-                if(adj.contains(srcVertex)) adj[srcVertex].pop(destVertex, true);
-            }
+            } else if(adj.contains(srcVertex)) adj[srcVertex].pop(destVertex, true);
         }
 
     public: 
@@ -90,31 +72,17 @@ template <class V> class Graph {
          * @param dest The destination vertex label.
          * @param weight The weight of the edge (default is 0.0).
          */
-        void addEdge(V src, V dest, double weight = 0.0) {
+        void addEdge(const V& src, const V& dest) {
             Vertex<V> srcVertex = Vertex(src);
             Vertex<V> destVertex = Vertex(dest);
 
-            Edge<V> edge = Edge<V>(srcVertex, destVertex, weight);
-            Edge<V> edge2 = Edge<V>(destVertex, srcVertex, weight);
-            edge.setDirect(this->isDig);
-            edge2.setDirect(this->isDig);
-
             if(!this->isDig) {
-                if(!map[srcVertex].contains(edge) && !map[srcVertex].contains(edge2))
-                    map[srcVertex].addInOrder(edge);
-                
-                if(!map[destVertex].contains(edge) && !map[destVertex].contains(edge2))
-                    map[destVertex].addInOrder(edge);
-                
                 if(!adj[srcVertex].contains(destVertex))
                     adj[srcVertex].addInOrder(destVertex);
 
                 if(!adj[destVertex].contains(srcVertex))
                     adj[destVertex].addInOrder(srcVertex);
             } else {
-                if(!map[srcVertex].contains(edge))
-                    map[srcVertex].addInOrder(edge);
-                
                 if(!adj[srcVertex].contains(destVertex))
                     adj[srcVertex].addInOrder(destVertex);
             }
@@ -126,35 +94,44 @@ template <class V> class Graph {
          * @param src The source vertex label.
          * @param dest The destination vertex label.
          */
-        void removeEdge(V src, V dest) {
+        void removeEdge(const V& src, const V& dest) {
             this->removeEdge(Vertex(src), Vertex(dest));
+        }
+
+        /**
+         * @brief Removes an edge from the graph.
+         * 
+         * @param edge The edge to be removed.
+         */
+        void removeEdge(const Edge<V>& edge) {
+            this->removeEdge(edge.getSource(), edge.getDestination());
         }
 
         /**
          * @brief Adds a vertex to the graph.
          * 
-         * @param vertex The label of the vertex to be added.
+         * @param label The label of the vertex to be added.
          */
-        void addVertex(V vertex) {
-            Vertex<V> ver = Vertex<V>(vertex);
-            if(!map.contains(ver)) map[ver] = ArrayList<Edge<V>>();
+        void addVertex(const V& label) {
+            Vertex<V> ver = Vertex<V>(label);
             if(!adj.contains(ver)) adj[ver] = ArrayList<Vertex<V>>();
         }
 
         /**
          * @brief Removes a vertex and its associated edges from the graph.
          * 
-         * @param vertex The label of the vertex to be removed.
+         * @param label The label of the vertex to be removed.
          */
-        void removeVertex(V vertex) {
-            Vertex<V> ver = Vertex<V>(vertex);
+        void removeVertex(const V& label) {
+            Vertex<V> ver = Vertex<V>(label);
 
-            ArrayList<Edge<V>> edges = map[ver];
-            for(int i = 0; i < edges.size(); i++) 
-                removeEdge(edges[i].getSource(), edges[i].getDestination());
+            ArrayList<Vertex<V>> vertices = this->getVertices();
+            ArrayList<ArrayList<Vertex<V>>> list = this->adj.values();
+            for(int i = 0; i < list.size(); i++) 
+                if(list[i].contains(ver))
+                    this->adj[vertices[i]].pop(ver, true);
 
-            map.remove(ver);
-            adj.remove(ver);
+            this->adj.remove(ver);
         }
 
         /**
@@ -163,7 +140,7 @@ template <class V> class Graph {
          * @return The number of vertices.
          */
         int size() const {
-            return map.size();
+            return this->adj.size();
         }
 
         /**
@@ -181,33 +158,42 @@ template <class V> class Graph {
          * @param vertex The label of the vertex.
          * @return A pair containing the in-degree and out-degree of the vertex.
          */
-        Pair<int, int> degree(V vertex) const {
+        Pair<int, int> degree(const V& vertex) const {
             Vertex<V> ver = Vertex<V>(vertex);
+
             if(isDig) {
-                int in = 0, out = 0;
-                for(int i = 0; i < map.get(ver).size(); i++) {
-                    if(map.get(ver)[i].isDirect()) {
-                        if(map.get(ver)[i].getSource() == ver) out++;
-                        else in++;
-                    } else {
+                ArrayList<ArrayList<Vertex<V>>> list = this->adj.values();
+
+                int in = 0, 
+                    out = this->adj.get(ver).size();
+                
+                for(int i = 0; i < list.size(); i++) 
+                    if(list[i].contains(ver))
                         in++;
-                        out++;
-                    }
-                }
+                
                 return Pair<int, int>(in, out, true);
-            } else {
-                return Pair<int, int>(map.get(ver).size());
             }
+                
+            return Pair<int, int>(this->adj.get(ver).size());
         }
 
         /**
          * @brief Get the Edges of a vertex
          * 
-         * @param vertex The label of the vertex.
+         * @param label The label of the vertex.
          * @return ArrayList<Edge<V>> 
          */
-        ArrayList<Edge<V>> getEdges(V vertex) const {
-            return map.get(Vertex<V>(vertex));
+        ArrayList<Edge<V>> getEdges(const V& label) const {
+            ArrayList<Edge<V>> edges;
+            Vertex<V> ver = Vertex<V>(label);
+
+            for(int i = 0; i < this->adj.get(ver).size(); i++) {
+                Edge<V> edge(ver, this->adj.get(ver)[i]);
+                edge.setDirect(this->isDig);
+                edges.add(edge);
+            }
+
+            return edges;
         }
 
         /**
@@ -217,16 +203,16 @@ template <class V> class Graph {
          * @return ArrayList<Edge<V>> 
          */
         ArrayList<Edge<V>> getEdges(Vertex<V> vertex) const {
-            return map.get(vertex);
+            return this->getEdges(vertex.getLabel());
         }
 
         /**
-         * @brief Get the Vertexes of the graph
+         * @brief Get the Vertices of the graph
          * 
          * @return ArrayList<Vertex<V>> 
          */
-        ArrayList<Vertex<V>> getVertexes() const {
-            return map.keys();
+        ArrayList<Vertex<V>> getVertices() const {
+            return this->adj.keys();
         }
 
         /**
@@ -235,9 +221,7 @@ template <class V> class Graph {
          * @return ArrayList<Pair<int, int>> The degree list of the graph
          */
         ArrayList<Pair<int, int>> degreeList() const {
-            ArrayList<Vertex<V>> keys = map.keys();
-            ArrayList<ArrayList<Edge<V>>> values = map.values();
-
+            ArrayList<Vertex<V>> keys = this->adj.keys();
             ArrayList<Pair<int, int>> degreeList;
 
             for(int i = 0; i < keys.size(); i++)
@@ -252,14 +236,13 @@ template <class V> class Graph {
          * @return Map<Vertex<V>, ArrayList<Vertex<V>>> The adjacent list of the graph
          */
         Map<Vertex<V>, ArrayList<Vertex<V>>> adjacentList() const {
-            return adj;
+            return this->adj;
         }
 
         /**
          * @brief Clear the graph.
          */
         void clear() {
-            map.clear();
             adj.clear();
         }
 
@@ -267,7 +250,6 @@ template <class V> class Graph {
          * @brief Clear the edges of the graph.
          */
         void clearEdges() {
-            map.clearValues();
             adj.clearValues();
         }
 
@@ -299,13 +281,12 @@ template <class V> class Graph {
  */
 template <class V> bool isComplete(const Graph<V>& graph) {
     int expectedEdges = graph.size() - 1;
-    
     ArrayList<Pair<int, int>> list = graph.degreeList();
 
     bool eq = !list.isEmpty();
     for(int i = 0; eq && i < list.size(); i++) {
         if(graph.isDigraph()) 
-            eq = list[i].first() + list[i].second() == expectedEdges;
+            eq = list[i].first() == expectedEdges && list[i].second() == expectedEdges;
         else 
             eq = list[i].first() == expectedEdges;
     }
@@ -338,14 +319,14 @@ template <class V> bool isRegular(const Graph<V>& graph) {
  * @return True if the graph is bipartite, false otherwise.
  */
 template <class V> bool isBipartite(const Graph<V>& graph) {
-    ArrayList<Vertex<V>> vertexes = graph.getVertexes();
+    ArrayList<Vertex<V>> vertices = graph.getVertices();
     Map<Vertex<V>, bool> color;
 
-    for(int i = 0; i < vertexes.size(); i++) {
-        if(!color.contains(vertexes[i])) {
-            color[vertexes[i]] = false;
+    for(int i = 0; i < vertices.size(); i++) {
+        if(!color.contains(vertices[i])) {
+            color[vertices[i]] = false;
             Queue<Vertex<V>> queue;
-            queue.push(vertexes[i]);
+            queue.push(vertices[i]);
 
             while(!queue.isEmpty()) {
                 Vertex<V> vertex = queue.pop();

@@ -9,19 +9,15 @@
 #include "lib/helpers/Vertex.hpp"
 #include "lib/MatrixGraph.hpp"
 #include "lib/Set.hpp"
+#include "lib/Tarjan.hpp"
 
 int main() {
-    MatrixGraph<std::string> graph;
+    MatrixGraph<std::string> graph(true);
 
     graph.addEdge("A", "B");
-    graph.addEdge("A", "C");
-    graph.addEdge("A", "D");
     graph.addEdge("B", "C");
-    graph.addEdge("B", "D");
-    graph.addEdge("C", "D");
+    graph.addEdge("C", "A");
 
-    std::cout << graph << std::endl;
-    std::cout << (isRegular(graph) ? "Yes":  "No") << std::endl;
-
+    std::cout << graph.tarjan() << std::endl;
     return 0;
 }
