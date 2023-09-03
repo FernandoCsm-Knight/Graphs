@@ -174,7 +174,7 @@ template <class T> class Queue {
          * 
          * @param element The element to be added to the queue.
          */
-        void push(T element) {
+        void push(const T& element) {
             Node<T>* node = new Node<T>(element);
 
             if(head == nullptr && tail == nullptr) {

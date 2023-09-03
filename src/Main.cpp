@@ -10,14 +10,20 @@
 #include "lib/MatrixGraph.hpp"
 #include "lib/Set.hpp"
 #include "lib/Tarjan.hpp"
+#include "lib/MinHeap.hpp"
+#include "lib/PriorityQueue.hpp"
 
 int main() {
-    MatrixGraph<std::string> graph(true);
+    MatrixGraph<std::string> graph(true);    
 
     graph.addEdge("A", "B");
+    graph.addEdge("A", "C");
+    graph.addEdge("E", "A");
     graph.addEdge("B", "C");
-    graph.addEdge("C", "A");
+    graph.addEdge("B", "D");
+    graph.addEdge("D", "F");
+    graph.addEdge("F", "C");
+    graph.addEdge("E", "F");
 
-    std::cout << graph.tarjan() << std::endl;
-    return 0;
+    std::cout << graph.dist("A", "F") << std::endl;
 }

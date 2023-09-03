@@ -99,6 +99,7 @@ template <class V> class Tarjan {
 
         ArrayList<MatrixGraph<V>> getScc() {
             ArrayList<MatrixGraph<V>> components;
+
             for(int i = 0; i < this->scc; i++) {
                 MatrixGraph<V> component(true);
                 for(int j = 0; j < this->vertices.size(); j++) {
@@ -108,6 +109,7 @@ template <class V> class Tarjan {
                         for(int k = 0; k < this->vertices.size(); k++) 
                             if(this->lowLink[k] == i && this->graph[j][k] == 1) 
                                 component.addEdge(this->vertices[j], this->vertices[k]);
+
                     }
                 }
 

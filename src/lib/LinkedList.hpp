@@ -161,7 +161,7 @@ template <class T> class LinkedList {
          * 
          * @param value The value to be added.
          */
-        void add(T value) {
+        void add(const T& value) {
             Node<T>* node = new Node<T>(value);
             if (this->head == nullptr) {
                 this->head = node;
@@ -181,7 +181,7 @@ template <class T> class LinkedList {
          * @param value The value to be added.
          * @throw std::invalid_argument If the index is out of range.
          */
-        void add(unsigned int index, T value) {
+        void add(unsigned int index, const T& value) {
             if (index > this->length) 
                 throw std::invalid_argument("The index must be greater than 0 and less than the length of the list");
 
@@ -244,7 +244,7 @@ template <class T> class LinkedList {
          * 
          * @param value The value to be added.
          */
-        void unshift(T value) {
+        void unshift(const T& value) {
             Node<T>* node = new Node<T>(value);
             if (this->head == nullptr) {
                 this->head = node;
@@ -312,7 +312,7 @@ template <class T> class LinkedList {
          * @param check If true, search for the value from the beginning; otherwise, search from the end.
          * @throw std::invalid_argument If the value is not found in the list.
          */
-        void pop(T value, bool check) {
+        void pop(const T& value, bool check) {
             int index = -1;
             if (check) 
                 index = this->indexOf(value);
@@ -355,7 +355,7 @@ template <class T> class LinkedList {
          * @param value The value to search for.
          * @return int The index of the first occurrence of the value, or -1 if not found.
          */
-        int indexOf(T value) const {
+        int indexOf(const T& value) const {
             Node<T>* node = this->head;
 
             for(int i = 0; node != nullptr; i++) {
@@ -373,7 +373,7 @@ template <class T> class LinkedList {
          * @param value The value to search for.
          * @return int The index of the last occurrence of the value, or -1 if not found.
          */
-        int lastIndexOf(T value) const {
+        int lastIndexOf(const T& value) const {
             Node<T>* node = this->tail;
 
             for(int i = this->length - 1; node != nullptr; i--) {
@@ -409,7 +409,7 @@ template <class T> class LinkedList {
          * @param value The value to check for.
          * @return bool True if the value exists in the linked list; otherwise, false.
          */
-        bool contains(T value) const {
+        bool contains(const T& value) const {
             return this->indexOf(value) != -1;
         }
 
@@ -438,7 +438,7 @@ template <class T> class LinkedList {
          * @param value The new value for the element.
          * @throw std::out_of_range If the index is out of range.
          */
-        void set(unsigned int index, T value) {
+        void set(unsigned int index, const T& value) {
             if (index < 0 || index >= this->length) 
                 throw std::out_of_range("Index out of range");
 

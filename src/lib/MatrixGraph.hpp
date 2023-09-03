@@ -24,6 +24,7 @@ template <class V> class MatrixGraph;
 
 #include "ArrayList.hpp"
 #include "DepthFirstOrder.hpp"
+#include "PriorityQueue.hpp"
 #include "Map.hpp"
 #include "Queue.hpp"
 #include "Stack.hpp"
@@ -31,6 +32,7 @@ template <class V> class MatrixGraph;
 
 #include "helpers/Edge.hpp"
 #include "helpers/Vertex.hpp"
+#include "helpers/Pair.hpp"
 
 /**
  * @brief A template class implementing a graph data structure using an adjacency matrix.
@@ -54,6 +56,12 @@ template <class V> class MatrixGraph {
             delete[] this->matrix;
         }
 
+        /**
+         * @brief Returns a bool array containing the vertices
+         * 
+         * @param vertex The vertex to start the search.
+         * @return True if the graph contains the given vertex, false otherwise.
+         */
         bool* depthFirstSearch(const Vertex<V>& vertex) const {
             Stack<Vertex<V>> stk;
             
@@ -205,6 +213,16 @@ template <class V> class MatrixGraph {
         }
 
         /**
+         * @brief Indicates whether the graph contains the given vertex.
+         * 
+         * @param vertex The vertex to be checked.
+         * @return True if the graph contains the given vertex, false otherwise. 
+         */
+        bool contains(const Vertex<V>& vertex) const {
+            return this->vertices.contains(vertex, true);
+        }
+
+        /**
          * @brief Indicates whether the graph contains the given edge.
          * 
          * @param src The source vertex of the edge.
@@ -219,6 +237,40 @@ template <class V> class MatrixGraph {
                 return this->matrix[srcIndex][destIndex] != 0;
 
             return false;
+        }
+
+        /**
+         * @brief Indicates whether the graph contains the given edge.
+         * 
+         * @param edge The edge to be checked.
+         * @return True if the graph contains the given edge, false otherwise. 
+         */
+        bool contains(const Edge<V>& edge) const {
+            return this->contains(edge.getSource(), edge.getDestination());
+        }
+
+        /**
+         * @brief Indicates whether there is a path from the source vertex to the destination vertex.
+         * 
+         * @param src The source vertex.
+         * @param dest The destination vertex.
+         * @return True if there is a path from the source vertex to the destination vertex, false otherwise. 
+         */
+        bool hasPath(const V& src, const V& dest) const {
+            if(!this->contains(src) || !this->contains(dest))
+                return false;
+
+            int srcIndex = this->vertices.indexOf(Vertex<V>(src), true), 
+                destIndex = this->vertices.indexOf(Vertex<V>(dest), true);
+
+            if(this->matrix[srcIndex][destIndex] == 1)
+                return true;
+
+            bool* arr = this->depthFirstSearch(Vertex<V>(src));
+            bool res = arr[destIndex];
+            delete[] arr;
+
+            return res;
         }
 
         /**
@@ -717,6 +769,60 @@ template <class V> class MatrixGraph {
          */
         DepthFirstOrder<V> depthFirstOrder() const {
             return DepthFirstOrder<V>(*this);
+        }
+
+
+        ArrayList<Vertex<V>> base() {
+            ArrayList<Vertex<V>> list;
+
+            ArrayList<MatrixGraph<V>> components = this->tarjan();
+            for(int i = 0 ; i < components.size(); i++) {
+
+                ArrayList<Vertex<V>> tmp = components[i].getVertices();
+                for(int j = 0; j < tmp.size(); j++) {
+
+                }
+            }
+
+
+            return list;
+        }
+
+        int dist(const V& src, const V& dest) {
+            if(!this->contains(src) || !this->contains(dest))
+                throw std::invalid_argument("Vertex not found.");
+
+            return this->dist(Vertex<V>(src), Vertex<V>(dest));
+        }
+
+        int dist(const Vertex<V>& src, const Vertex<V>& dest) {
+            if(!this->contains(src) || !this->contains(dest))
+                throw std::invalid_argument("Vertex not found.");
+
+            PriorityQueue<Pair<int, Vertex<V>>> queue;
+
+            bool* arr = new bool[this->length];
+            for(int i = 0; i < this->length; i++)
+                arr[i] = false;
+            
+            queue.push(Pair<int, Vertex<V>>(0, src, true));
+            arr[this->vertices.indexOf(src, true)] = true;
+
+            Pair<int, Vertex<V>> tmp = Pair<int, Vertex<V>>(0, src, true);
+            while(!queue.isEmpty() && tmp.value != dest) {
+                tmp = queue.pop();
+
+                int idx = this->vertices.indexOf(tmp.value, true);
+                for(int i = 0; i < this->length; i++) {
+                    if(this->matrix[idx][i] == 1 && !arr[i]) {
+                        queue.push(Pair<int, Vertex<V>>(tmp.key + 1, this->vertices.get(i), true));
+                        arr[i] = true;
+                    }
+                }
+            }
+
+            delete[] arr;
+            return queue.isEmpty() && tmp.value != dest ? -1 : tmp.key;
         }
 };
 

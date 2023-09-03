@@ -226,7 +226,7 @@ template <class T> class ArrayList {
          * 
          * @param element The element to be added.
          */
-        void add(T element) {
+        void add(const T& element) {
             this->resize();
             this->array[this->length++] = element;
         }

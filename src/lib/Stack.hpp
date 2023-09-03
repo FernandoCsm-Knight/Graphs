@@ -120,7 +120,7 @@ template <class T> class Stack {
          * 
          * @param value The element to be added to the stack.
          */
-        void push(T value) {
+        void push(const T& value) {
             Node<T>* newNode = new Node<T>(value);
 
             if(this->top == nullptr) {
