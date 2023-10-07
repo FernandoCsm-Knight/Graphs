@@ -45,9 +45,32 @@ template <class K, class V> class Pair {
         Pair(K key, V value, bool tuple = false): key(key), value(value), isTuple(tuple) {}
 
         /**
+         * @brief Copy constructor for Pair.
+         * 
+         * @param other The Pair to copy.
+         */
+        Pair(const Pair<K, V>& other): key(other.key), value(other.value), isTuple(other.isTuple) {}
+
+        /**
          * @brief Destructor for Pair.
          */
         ~Pair() {}
+
+        /**
+         * @brief Overloaded assignment operator for Pair.
+         * @param other The Pair to copy.
+         * 
+         * @return Pair& A reference to the Pair after copying.
+         */
+        Pair<K, V>& operator=(const Pair<K, V>& other) {
+            if(this != &other) {
+                this->key = other.key;
+                this->value = other.value;
+                this->isTuple = other.isTuple;
+            }
+
+            return *this;
+        }
 
         /**
          * @brief getter for the key.

@@ -150,9 +150,7 @@ template <class K, class V> class Map {
          * @param key The key to remove.
          */
         void remove(K key) {
-            Pair<K, V>* element = new Pair<K, V>(key);
-            tree.pop(*element);
-            delete element;
+            tree.pop(Pair<K, V>(key));
             this->length--;
         }
 
@@ -162,10 +160,7 @@ template <class K, class V> class Map {
          * @return bool true if the key exists in the map, false otherwise.
          */
         bool contains(K key) {
-            Pair<K, V>* element = new Pair<K, V>(key);
-            bool contains = tree.contains(*element);
-            delete element;
-            return contains;
+            return tree.contains(Pair<K, V>(key));
         }
 
         /**

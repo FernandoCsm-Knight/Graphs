@@ -45,9 +45,31 @@ template <class T> class Vertex {
         Vertex(T label, double weight = 0.0): label(label), weight(weight) {}
 
         /**
+         * @brief Construct a new Vertex object from another vertex.
+         * 
+         * @param other The vertex to copy.
+         */
+        Vertex(const Vertex<T>& other): label(other.label), weight(other.weight) {}
+
+        /**
          * @brief Destructor for a vertex.
          */
         ~Vertex() {}
+
+        /**
+         * @brief Overloaded assignment operator for a vertex.
+         * 
+         * @param other The vertex to copy.
+         * @return Vertex<T>& The vertex after copying.
+         */
+        Vertex<T>& operator=(const Vertex<T>& other) {
+            if (this != &other) {
+                label = other.label;
+                weight = other.weight;
+            }
+
+            return *this;
+        }
 
         /**
          * @brief Gets the label of the vertex.

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "ArrayList.hpp"
 #include "helpers/Pair.hpp"
 
 /**
@@ -106,6 +107,22 @@ template <class T> class Set {
 
         // Public methods
 
+        Set<T>& operator=(const Set<T>& set) {
+            if(this != &set) {
+                this->capacity = set.capacity;
+                this->isDynamic = set.isDynamic;
+                this->length = set.length;
+
+                delete[] this->arr;
+                this->arr = new T[this->capacity];
+
+                for(int i = 0; i < this->length; i++) 
+                    this->arr[i] = set.arr[i];
+            }
+
+            return *this;
+        }
+
         /**
          * @brief Check if the set is full (reached its capacity).
          * 
@@ -147,7 +164,7 @@ template <class T> class Set {
          * 
          * @param value The element to be added to the set.
          */
-        void add(T value) {
+        void add(const T& value) {
             if(this->length == this->capacity && this->isDynamic) 
                 this->resize();
 
@@ -183,6 +200,47 @@ template <class T> class Set {
             }
         }
 
+        /**
+         * @brief Returns the set as a dynamic array.
+         * 
+         * @return ArrayList<T> The set as a dynamic array.
+         */
+        ArrayList<T> toArray() const {
+            ArrayList<T> list = ArrayList<T>(this->length);
+
+            for(int i = 0; i < this->length; i++) 
+                list.add(this->arr[i]);
+
+            return list;
+        }
+
+        /**
+         * @brief Overloaded assignment operator to assign a set to another.
+         * 
+         * @param element The set to be assigned.
+         * @return T& The set after assignment.
+         */
+        T& operator[](const T& element) {
+            int index = this->search(element);
+
+            if(index == -1) 
+                throw std::out_of_range("Element not found");
+
+            return this->arr[index];
+        }
+
+        /**
+         * @brief Get the element at a given index.
+         * 
+         * @param idx The index of the element to be retrieved.
+         * @return T& The element at the given index.
+         */
+        T& operator[](std::size_t idx) {
+            if(((int)idx) >= this->length) 
+                throw std::out_of_range("Index out of range");
+
+            return this->arr[idx];
+        }
 
         /**
          * @brief Check if the set contains a given element.
@@ -244,6 +302,12 @@ template <class T> class Set {
          */
         inline friend bool operator!=(const Set<T>& set1, const Set<T>& set2) { return !(set1 == set2); }
 
+        /**
+         * @brief Overloaded addition operator to compute the union of two sets.
+         * 
+         * @param set The set to compute the union with.
+         * @return Set<T> The resulting set after computing the union.
+         */
         Set<T> operator+(const Set<T>& set) const {
             Set<T> result = Set<T>(this->capacity + set.capacity, this->isDynamic || set.isDynamic);
 

@@ -49,7 +49,24 @@ template <class V> class Edge {
          * @param dest The destination vertex of the edge.
          * @param weight The weight associated with the edge (default is 0.0).
          */
-        Edge(Vertex<V> src, Vertex<V> dest, double weight = 0.0): src(src), dest(dest), weight(weight) {}
+        Edge(const Vertex<V>& src, const Vertex<V>& dest, bool isDirected = false, double weight = 0.0): src(src), dest(dest), weight(weight), isDir(isDirected) {}
+
+        /**
+         * @brief Construct a new Edge object from a source and destination vertex.
+         * 
+         * @param src The source vertex.
+         * @param dest The destination vertex.
+         * @param weight The weight associated with the edge (default is 0.0).
+         * @param isDirected True if the edge is directed, false otherwise.
+         */
+        Edge(const V& src, const V& dest, bool isDirected = false, double weight = 0.0): src(src), dest(dest), weight(weight), isDir(isDirected) {}
+
+         /**
+         * @brief Construct a new Edge object from an existing Edge object.
+         * 
+         * @param edge The Edge object to copy.
+         */
+        Edge(Edge<V>& edge): src(edge.src), dest(edge.dest), weight(edge.weight), isDir(edge.isDir) {}
 
         /**
          * @brief Destructor for an edge.
@@ -57,42 +74,57 @@ template <class V> class Edge {
         ~Edge() {}
 
         /**
+         * @brief Overloaded assignment operator to copy an edge.
+         * 
+         * @param edge The edge to copy.
+         * @return Edge<V>& The edge after copying.
+         */
+        Edge<V>& operator=(const Edge<V>& edge) {
+            if(this != &edge) {
+                this->src = edge.src;
+                this->dest = edge.dest;
+                this->weight = edge.weight;
+                this->isDir = edge.isDir;
+            }
+
+            return *this;
+        }
+
+        /**
          * @brief Gets the source vertex of the edge.
          * 
          * @return The source vertex of the edge.
          */
-        inline Vertex<V> getSource() { return this->src; }
+        inline Vertex<V> getSource() const { return this->src; }
 
-        /**
+        /** 
          * @brief Gets the destination vertex of the edge.
          * 
          * @return The destination vertex of the edge.
          */
-        inline Vertex<V> getDestination() { return this->dest; }
+        inline Vertex<V> getDestination() const { return this->dest; }
 
         /**
          * @brief Gets the weight of the edge.
          * 
          * @return The weight of the edge.
          */
-        inline double getWeight() { return this->weight; }
-
-        /**
-         * @brief Sets the directionality of the edge.
-         * 
-         * @param value True if the edge is directed, false otherwise.
-         */
-        void setDirect(bool value) {
-            this->isDir = value;
-        }
+        inline double getWeight() const { return this->weight; }
 
         /**
          * @brief Checks if the edge is directed.
          * 
          * @return True if the edge is directed, false otherwise.
          */
-        bool isDirect() const {
-            return this->isDir;
+        inline bool isDirected() const { return this->isDir; }
+
+        /**
+         * @brief Sets the directionality of the edge.
+         * 
+         * @param value True if the edge is directed, false otherwise.
+         */
+        void setDirected(bool value) {
+            this->isDir = value;
         }
 
         /**
@@ -114,6 +146,26 @@ template <class V> class Edge {
             if(vertex == this->src) return this->dest;
             else if(vertex == this->dest) return this->src;
             else throw std::invalid_argument("Vertex is not in this edge");
+        }
+
+        /**
+         * @brief Checks if the edge contains a given vertex.
+         * 
+         * @param vertex The vertex to check.
+         * @return True if the edge contains the vertex, false otherwise.
+         */
+        bool contains(const Vertex<V>& vertex) const {
+            return vertex == this->src || vertex == this->dest;
+        }
+
+        /**
+         * @brief Checks if the edge contains a given vertex.
+         * 
+         * @param vertex The vertex to check.
+         * @return True if the edge contains the vertex, false otherwise.
+         */
+        bool contains(const V& vertex) const {
+            return this->contains(Vertex<V>(vertex));
         }
 
         /**
@@ -146,10 +198,7 @@ template <class V> class Edge {
          * @return True if the edges are equal, false otherwise.
          */
         friend bool operator==(const Edge& e1, const Edge& e2) {
-            if(e1.weight != 0.0 && e2.weight != 0.0) 
-                return e1.weight == e2.weight;
-
-            if(e1.isDirect() && e2.isDirect()) 
+            if(e1.isDirected() && e2.isDirected()) 
                 return e1.src == e2.src && e1.dest == e2.dest;
 
             return (e1.src == e2.src && e1.dest == e2.dest) || (e1.src == e2.dest && e1.dest == e2.src);
@@ -163,13 +212,10 @@ template <class V> class Edge {
          * @return True if the first edge is less than the second, false otherwise.
          */
         friend bool operator<(const Edge& e1, const Edge& e2) {
-            if(e1.weight != 0.0 && e2.weight != 0.0) 
-                return e1.weight < e2.weight;
-
             if(e1.src == e2.src) 
                 return e1.dest < e2.dest;
-            else 
-                return e1.src < e2.src;
+
+            return e1.src < e2.src;
         }
 
         // Other comparison operator overloads (!=, <=, >, >=) follow the same pattern

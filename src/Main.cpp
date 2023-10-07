@@ -13,17 +13,20 @@
 #include "lib/MinHeap.hpp"
 #include "lib/PriorityQueue.hpp"
 
+using std::string;
+
 int main() {
-    MatrixGraph<std::string> graph(true);    
+    Graph<string> graph;
 
     graph.addEdge("A", "B");
     graph.addEdge("A", "C");
-    graph.addEdge("E", "A");
+    graph.addEdge("A", "D");
     graph.addEdge("B", "C");
-    graph.addEdge("B", "D");
-    graph.addEdge("D", "F");
-    graph.addEdge("F", "C");
+    graph.addEdge("C", "D");
+    graph.addEdge("D", "E");
     graph.addEdge("E", "F");
 
-    std::cout << graph.dist("A", "F") << std::endl;
+    graph.removeVertex("A");
+
+    std::cout << graph << std::endl;
 }

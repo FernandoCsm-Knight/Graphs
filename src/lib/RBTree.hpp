@@ -366,7 +366,7 @@ template <class T> class RBTree {
          * 
          * @param element The element to be added to the tree.
          */
-        void add(T element) {
+        void add(const T& element) {
             Node* parent = nullptr;
             Node* curr = this->root;
 
@@ -400,7 +400,7 @@ template <class T> class RBTree {
          * 
          * @param element The element to be removed.
          */
-        void pop(T element) {
+        void pop(const T& element) {
             Node* curr = this->root;
             Node* node = nullptr;
 
@@ -468,7 +468,7 @@ template <class T> class RBTree {
          * @param element The element to be checked.
          * @return True if the element is present in the tree, false otherwise.
          */
-        bool contains(T element) const {
+        bool contains(const T& element) const {
             Node* curr = this->root;
             while(curr != nullptr) {
                 if(curr->element == element)
