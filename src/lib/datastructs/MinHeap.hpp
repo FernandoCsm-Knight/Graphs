@@ -4,7 +4,6 @@
 #include <iostream>
 #include <stdexcept>
 
-
 /**
  * @brief A template class implementing a min heap data structure.
  * 

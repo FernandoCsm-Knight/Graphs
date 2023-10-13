@@ -24,7 +24,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include "helpers/Node.hpp"
+
+#include "../helpers/Node.hpp"
 
 /**
  * @brief Templated doubly-linked list class.

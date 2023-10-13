@@ -19,7 +19,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "helpers/Node.hpp"
+#include "../helpers/Node.hpp"
 
 /**
  * @brief A templated Queue class that represents a FIFO 

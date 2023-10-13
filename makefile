@@ -22,6 +22,7 @@ all: $(EXE)
 
 # Rule to build the executable
 $(EXE): $(OBJS)
+	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Rule to build object files

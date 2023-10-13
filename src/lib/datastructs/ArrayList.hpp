@@ -25,6 +25,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "iterators/IteratorArray.hpp"
+
 /**
  * @brief Templated dynamic array list class.
  * 
@@ -251,7 +253,7 @@ template <class T> class ArrayList {
         }
 
         /**
-         * @brief Add an element to the array list in ascending order.
+         * @brief Add an element to the array list in non-decreasing order.
          * 
          * @param element The element to be added.
          */
@@ -315,7 +317,7 @@ template <class T> class ArrayList {
          * @param check If true, search for the element from the beginning; otherwise, search from the end.
          * @throw std::invalid_argument If the element is not found in the list.
          */
-        T pop(const T& element, bool check) {
+        T pop(const T& element, bool check = true) {
             int index = -1;
             if(check)
                 index = this->indexOf(element);
@@ -454,6 +456,37 @@ template <class T> class ArrayList {
          */
         void sort() {
             this->quickSort(0, (long int)(this->length - 1));
+        }
+
+        /**
+         * @brief Returns a copy of the array list as a built-in array.
+         * 
+         * @return T* A copy of the array list as a built-in array.
+         */
+        T* toVector() const {
+            T* arr = new T[this->length];
+            for(int i = 0; i < this->length; i++) 
+                arr[i] = this->array[i];
+            
+            return arr;
+        }
+
+        /**
+         * @brief Returns a Iterator object pointing to the first element in the array list.
+         * 
+         * @return Iterator<T> An iterator pointing to the first element in the array list.
+         */
+        IteratorArray<T> begin() const {
+            return IteratorArray<T>(this->array);
+        }
+
+        /**
+         * @brief Returns a Iterator object pointing to the element after the last element in the array list.
+         * 
+         * @return Iterator<T> An iterator pointing to the element after the last element in the array list.
+         */
+        IteratorArray<T> end() const {
+            return IteratorArray<T>(this->array + this->length);
         }
 
         // Friend functions for overloading stream insertion and equality operators.

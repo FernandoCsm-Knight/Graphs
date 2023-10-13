@@ -4,8 +4,8 @@
 #include "helpers/Edge.hpp"
 #include "helpers/Vertex.hpp"
 
+#include "datastructs/ArrayList.hpp"
 #include "MatrixGraph.hpp"
-#include "ArrayList.hpp"
 
 template <class V> class Tarjan {
     private:

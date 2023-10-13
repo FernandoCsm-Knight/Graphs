@@ -20,7 +20,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "helpers/Node.hpp"
+#include "../helpers/Node.hpp"
 
 /**
  * @brief A templated Stack class that represents a Last-In-First-Out (LIFO) data structure.

@@ -21,8 +21,9 @@
 
 #include "ArrayList.hpp"
 #include "LinkedList.hpp"
-#include "helpers/Pair.hpp"
 #include "RBTree.hpp"
+
+#include "../helpers/Pair.hpp"
 
 /**
  * @class Map
@@ -159,7 +160,7 @@ template <class K, class V> class Map {
          * @param key The key to check for existence.
          * @return bool true if the key exists in the map, false otherwise.
          */
-        bool contains(K key) {
+        bool contains(K key) const {
             return tree.contains(Pair<K, V>(key));
         }
 

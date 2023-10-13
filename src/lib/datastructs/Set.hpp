@@ -1,6 +1,6 @@
 /**
  * @file Set.hpp
- * @author Ferando Campos Silva Dal Maria (fernando.csm123@gmail.com)
+ * @author Ferando Campos Silva Dal Maria (fernandocsdm@gmail.com)
  * @brief A C++ implementatio of a Set class, a templated data structure representing a 
  *        set of unique elements. This class provides methods for adding, removing, and 
  *        manipulating elements in a sorted set. It supports various set operations like 
@@ -18,8 +18,10 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "iterators/IteratorArray.hpp"
 #include "ArrayList.hpp"
-#include "helpers/Pair.hpp"
+
+#include "../helpers/Pair.hpp"
 
 /**
  * @brief A template class implementing a sorted set data structure.
@@ -49,6 +51,7 @@ template <class T> class Set {
             this->arr = temp;
         }
 
+    public:
         /**
          * @brief Perform binary search to find the index of an element.
          * 
@@ -71,8 +74,6 @@ template <class T> class Set {
 
             return -1;
         }
-
-    public:
 
         /**
          * @brief Constructor to create an instance of the Set class.
@@ -160,6 +161,16 @@ template <class T> class Set {
         }
 
         /**
+         * @brief Get the element at a given index.
+         * 
+         * @param idx The index of the element to be retrieved.
+         * @return T The element at the given index.
+         */
+        T get(int idx) const {
+            return this->arr[idx];
+        }
+
+        /**
          * @brief Add an element to the set while maintaining sorted order.
          * 
          * @param value The element to be added to the set.
@@ -187,8 +198,8 @@ template <class T> class Set {
          * 
          * @param value The element to be removed.
          */
-        void pop(const T& value) {
-            if(this->isEmpty()) return;
+        bool pop(const T& value) {
+            if(this->isEmpty()) return false;
 
             int index = this->search(value);
 
@@ -198,6 +209,8 @@ template <class T> class Set {
 
                 this->length--;
             }
+
+            return index != -1;
         }
 
         /**
@@ -212,6 +225,20 @@ template <class T> class Set {
                 list.add(this->arr[i]);
 
             return list;
+        }
+
+        /**
+         * @brief Returns the set as a vector.
+         * 
+         * @return T* The set as a vector.
+         */
+        T* toVector() const {
+            T* vector = new T[this->length];
+
+            for(int i = 0; i < this->length; i++) 
+                vector[i] = this->arr[i];
+
+            return vector;
         }
 
         /**
@@ -351,6 +378,24 @@ template <class T> class Set {
                     result.add(Pair<T, U>(this->arr[i], set.arr[j], true));
 
             return result;
+        }
+
+        /**
+         * @brief Returns a Iterator to the beginning of the set.
+         * 
+         * @return IteratorArray<T> An iterator to the beginning of the set.
+         */
+        IteratorArray<T> begin() const {
+            return IteratorArray<T>(this->arr);
+        }
+
+        /**
+         * @brief Returns a Iterator to the end of the set.
+         * 
+         * @return IteratorArray<T> An iterator to the end of the set.
+         */
+        IteratorArray<T> end() const {
+            return IteratorArray<T>(this->arr + this->length);
         }
 
 };
