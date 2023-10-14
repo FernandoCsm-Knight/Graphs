@@ -19,16 +19,12 @@ using std::string;
 int main() {
     Graph<string> graph;
 
-    graph.addEdge("A", "B", 1.0);
-    graph.addEdge("A", "C", 5.0);
-    graph.addEdge("A", "F", 3.0);
-    graph.addEdge("B", "F", 1.0);
-    graph.addEdge("C", "F", 1.0);
-    graph.addEdge("F", "D", 4.0); // 4
-    graph.addEdge("C", "E", 1.0);
-    graph.addEdge("E", "D", 1.0);
-    graph.addEdge("D", "G", 1.0);
-
+    graph.addEdge("A", "B");
+    graph.addEdge("A", "C");
+    graph.addEdge("B", "D");
+    graph.addEdge("C", "E");
+    graph.addEdge("D", "E");
+    
     graph.toJsonFile();
-    std::cout << graph.shortestPaht("A", "G") << std::endl;
+    std::cout << graph.describe() << std::endl;
 }

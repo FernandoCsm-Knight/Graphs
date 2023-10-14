@@ -200,26 +200,10 @@ template <class V> class Edge {
          * @return True if the first edge is less than the second, false otherwise.
          */
         friend bool operator<(const Edge& e1, const Edge& e2) {
-            int sumE1 = 0, sumE2 = 0;
+            if(e1.src == e2.src)
+                return e1.dest < e2.dest;
 
-            if constexpr (std::is_same_v<V, std::string>) {
-                for(std::size_t i = 0; i < e1.src.length(); i++)
-                    sumE1 += e1.src[i];
-
-                for(std::size_t i = 0; i < e1.dest.length(); i++)
-                    sumE1 += e1.dest[i];
-                    
-                for(std::size_t i = 0; i < e2.src.length(); i++)
-                    sumE2 += e2.src[i];
-
-                for(std::size_t i = 0; i < e2.dest.length(); i++)
-                    sumE2 += e2.dest[i];
-            } else {
-                sumE1 = e1.src + e1.dest;
-                sumE2 = e2.src + e2.dest;
-            }
-
-            return sumE1 < sumE2;
+            return e1.src < e2.src;
         }
 
         // Other comparison operator overloads (!=, <=, >, >=) follow the same pattern

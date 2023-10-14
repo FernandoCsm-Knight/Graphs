@@ -26,6 +26,7 @@
 #include "datastructs/Queue.hpp"
 #include "datastructs/Set.hpp"
 #include "datastructs/PriorityQueue.hpp"
+#include "datastructs/UnionFind.hpp"
 
 #include "helpers/Edge.hpp"
 #include "helpers/Pair.hpp"
@@ -80,10 +81,170 @@ template <class V> class Graph {
         inline bool contains(const V& src, const V& dest) const { return edges.contains(Edge<V>(src, dest, isDig)); }
 
         inline bool isEmpty() const { return adj.isEmpty(); }
+        inline bool isDigraph() const { return isDig; }
         inline int size() const { return adj.size(); }
         inline int sizeEdges() const { return edges.size(); }
 
+        inline Set<V> getVertices() const { return adj.keys().toSet(); }
+        inline Set<V> getNeighbors(const V& vertex) const { return adj.get(vertex); }
+        inline Set<Edge<V>> getEdges() const { return edges; }
+        inline Map<V, Set<V>> adjacencyList() const { return adj; }
+
         // Other Methods
+
+        bool isRegular() const {
+            ArrayList<Pair<int, int>> list = this->degreeList();
+
+            bool value = true;
+            if(!isDig) {
+                for(int i = 0; i < list.size() && value; i++) 
+                    value = list[i].first() == list[0].first();
+            } else {
+                for(int i = 0; i < list.size() && value; i++)
+                    value = list[i].first() == list[0].first() && list[i].second() == list[0].second();
+            }
+            
+            return value;
+        }
+
+        bool isComplete() const {
+            ArrayList<Pair<int, int>> list = this->degreeList();
+
+            bool value = true;
+            if(!isDig) {
+                for(int i = 0; i < list.size() && value; i++) 
+                    value = list[i].first() == list.size() - 1;
+            } else {
+                for(int i = 0; i < list.size() && value; i++)
+                    value = list[i].first() == list.size() - 1 && list[i].second() == list.size() - 1;
+            }
+
+            return value;
+        }
+
+        bool isBipartite() const {
+            bool color[this->size()];
+            bool visited[this->size()];
+            bool value = true;
+
+            for(int i = 0; i < this->size(); i++) {
+                color[i] = false;
+                visited[i] = false;
+            }
+
+            Stack<V> stack;
+            ArrayList<V> vertices = adj.keys();
+
+            for(int i = 0; i < this->size() && value; i++) {
+                if(!visited[i]) {
+                    stack.push(vertices[i]);
+
+                    while(!stack.isEmpty() && value) {
+                        V u = stack.pop();
+                        int indexU = vertices.indexOf(u, true);
+
+                        visited[indexU] = true;
+                        Set<V> set = adj.get(u);
+                        for(int j = 0; j < set.size() && value; j++) {
+                            V v = set.get(j);
+                            int indexV = vertices.indexOf(v, true);
+
+                            if(!visited[indexV]) {
+                                color[indexV] = !color[indexU];
+                                stack.push(v);
+                            } else if(color[indexV] == color[indexU]) {
+                                value = false;
+                            }
+                        }
+                    }
+                } 
+            }
+            
+            return value;
+        }
+
+        bool isTree() const {
+            UnionFind uf(this->size());
+            ArrayList<V> vertices = adj.keys();
+
+            for(Edge<V> e : edges) 
+                uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+
+            return uf.numberOfComponents() == 1 && edges.size() == this->size() - 1;
+        }
+
+        bool isForest() const {
+            UnionFind uf(this->size());
+            ArrayList<V> vertices = adj.keys();
+
+            for(Edge<V> e : edges) 
+                uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+
+            return edges.size() == this->size() - uf.numberOfComponents();
+        }
+
+        bool isEulerian() const {
+            ArrayList<Pair<int, int>> list = degreeList();
+
+            if(isDig) {
+                bool value = true;
+                int j = 0, k = 0;
+                for(int i = 0; i < list.size() && value; i++) {
+                    value = list[i].first() - list[i].second() <= 1 || list[i].second() - list[i].first() <= 1;
+                    
+                    if(value) {
+                        if(list[i].first() - list[i].second() == 1) j++;
+                        if(list[i].second() - list[i].first() == 1) k++;
+                    }
+                }
+
+                return value && ((j == 1 && k == 1) || (j == 0 && k == 0));
+            }
+
+            int j = 0;
+            for(int i = 0; i < list.size(); i++) 
+                if(list[i].first() % 2 != 0) j++;
+
+            return j == 2 || j == 0;
+        }
+
+        Pair<int, int> degree(const V& vertex) const {
+            if(!isDig) return Pair<int, int>(adj.get(vertex).size());
+
+            int in = 0, out = 0;
+            for(int i = 0; i < edges.size(); i++) {
+                if(edges.get(i).getDestination() == vertex) in++;
+                if(edges.get(i).getSource() == vertex) out++;
+            }
+
+            return Pair<int, int>(in, out);
+        }
+
+        ArrayList<Pair<int, int>> degreeList() const {
+            ArrayList<V> vertices = adj.keys();
+            ArrayList<Pair<int, int>> list;
+
+            for(int i = 0; i < vertices.size(); i++) 
+                list.add(this->degree(vertices[i]));
+
+            return list;
+        }
+
+        void transpose() {
+            if(isDig) {
+                Map<V, Set<V>> tmp(adj);
+                ArrayList<V> vertices = adj.keys();
+                for(int i = 0; i < vertices.size(); i++) {
+                    V u = vertices[i];
+                    Set<V> set = tmp.get(u);
+                    
+                    for(V v : set) {
+                        this->removeEdge(u, v);
+                        this->addEdge(v, u);
+                    }
+                }
+            }
+        }
 
         void addVertex(const V& vertex) {
             if(!adj.contains(vertex)) 
@@ -142,41 +303,35 @@ template <class V> class Graph {
 
             ArrayList<V> vertices = adj.keys();
             PriorityQueue<Pair<int, V>> queue;
-            int distances[this->size()];
             bool visited[this->size()];
 
-            for(int i = 0; i < this->size(); i++) {
-                distances[i] = __INT32_MAX__;
+            for(int i = 0; i < this->size(); i++) 
                 visited[i] = false;
-            }
 
-            distances[vertices.indexOf(src, true)] = 0;
-            queue.push(Pair<int, V>(0, src));
-
-            while(!queue.isEmpty()) {
-                V w = queue.poll().second();
-                int indexW = vertices.indexOf(w, true);
-
-                visited[indexW] = true;
-                for(V u : adj.get(w)) {
-                    int indexU = vertices.indexOf(u, true);
-
-                    if(!visited[indexU]) {
-                        distances[indexU] = (distances[indexU] < distances[indexW] + 1) ? distances[indexU] : distances[indexW] + 1;
-                        queue.push(Pair<int, V>(distances[indexU], u));
-                    }
+            Pair<int, V> pair(0, src);
+            queue.push(pair);
+            while(!queue.isEmpty() && pair.second() != dest) {
+                pair = queue.poll();
+                visited[vertices.indexOf(pair.second(), true)] = true;
+                
+                for(V u : adj.get(pair.second())) {
+                    if(!visited[vertices.indexOf(u, true)]) 
+                        queue.push(Pair<int, V>(pair.first() + 1, u));
                 }
             }
 
-            int indexDest = vertices.indexOf(dest, true);
-            return distances[indexDest] == __INT32_MAX__ ? -1 : distances[indexDest];
+            return (pair.second() == dest) ? pair.first() : -1;
         }
 
         Path<V> shortestPaht(const V& src, const V& dest) const {
             if(!adj.contains(src) || !adj.contains(dest)) 
                 throw std::invalid_argument("The given vertices do not exist in the graph.");
 
-            if(src == dest) return Path<V>();
+            if(src == dest) {
+                ArrayList<V> list;
+                list.add(src);
+                return Path<V>(list, weight(src, dest));
+            }
 
             ArrayList<V> vertices = adj.keys();
             PriorityQueue<Pair<double, V>> queue;
@@ -200,6 +355,7 @@ template <class V> class Graph {
                 visited[indexW] = true;
                 for(V u : adj.get(w)) {
                     int indexU = vertices.indexOf(u, true);
+
                     if(!visited[indexU]) {
                         if(distances[indexU] < distances[indexW] + weight(w, u)) {
                             distances[indexU] = distances[indexU];
@@ -217,7 +373,6 @@ template <class V> class Graph {
             if(distances[indexDest] == __DBL_MAX__)
                 return Path<V>();
 
-
             Path<V> path;
             int index = indexDest;
             V tmp = parents[index];
@@ -234,7 +389,14 @@ template <class V> class Graph {
 
         double weight(const V& src, const V& dest) const {
             int idx = edges.search(Edge<V>(src, dest, isDig));
-            if(idx == -1) throw std::invalid_argument("The given edge does not exist in the graph.");
+            
+            if(idx == -1 && !isDig) 
+                idx = edges.search(Edge<V>(dest, src, isDig));
+
+            if(idx == -1) {
+                if(src == dest) return 0.0;
+                else throw std::invalid_argument("The given edge does not exist in the graph.");
+            } 
 
             return edges.get(idx).getWeight();
         }
@@ -245,6 +407,21 @@ template <class V> class Graph {
         }
 
         // Output Methods
+
+        std::string describe() const {
+            std::string s = "";
+
+            s.append((isDig ? "Directed" : "Undirected"));
+            s.append((isRegular() ? " Regular" : ""));
+            s.append((isComplete() ? " Complete" : ""));
+            s.append((isBipartite() ? " Bipartite" : ""));
+            s.append((isEulerian() ? " Eulerian" : ""));
+            s.append((isTree() ? " Tree" : ""));
+            s.append((isForest() ? " Forest" : ""));
+
+            s.append(" Graph");
+            return s;
+        }
 
         void toJsonFile() const {
             std::ofstream file;

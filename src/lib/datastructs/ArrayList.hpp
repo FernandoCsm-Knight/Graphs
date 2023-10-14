@@ -27,6 +27,9 @@
 
 #include "iterators/IteratorArray.hpp"
 
+template <class T> class ArrayList;
+#include "Set.hpp"
+
 /**
  * @brief Templated dynamic array list class.
  * 
@@ -153,8 +156,8 @@ template <class T> class ArrayList {
          * 
          * @param arr The array to be copied.
          */
-        ArrayList(T* arr) {
-            this->length = sizeof(arr) / sizeof(arr[0]);
+        ArrayList(const T arr[], int length) {
+            this->length = length;
             this->maxLength = this->length;
             this->array = new T[this->maxLength];
             
@@ -469,6 +472,14 @@ template <class T> class ArrayList {
                 arr[i] = this->array[i];
             
             return arr;
+        }
+
+        Set<T> toSet() const {
+            Set<T> set;
+            for(int i = 0; i < this->length; i++) 
+                set.add(this->array[i]);
+            
+            return set;
         }
 
         /**

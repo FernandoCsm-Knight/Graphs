@@ -18,8 +18,8 @@ template <class V> class Path {
             weight = 0.0;
         }
 
-        Path(const V vertex[], double weight) {
-            path = ArrayList<V>(vertex);
+        Path(const ArrayList<V> path, double weight) {
+            this->path = path;
             this->weight = weight;
         }
 
@@ -85,7 +85,7 @@ template <class V> class Path {
                     os << " -> ";
             }
 
-            os << "\nWeight: " << path.weight << "\n";
+            os << std::endl << "Weight: " << path.weight << std::endl;
             return os;
         }
 };

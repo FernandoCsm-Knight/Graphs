@@ -30,6 +30,7 @@ class UnionFind {
         int* ids; ///< The array of ids.
         int* sizes; ///< The array of sizes.
         int count; ///< The number of components.
+        int length; ///< The length of the arrays.
     
     public:
         /**
@@ -44,6 +45,7 @@ class UnionFind {
             ids = new int[size];
             sizes = new int[size];
             count = 0;
+            length = size;
 
             for(int i = 0; i < size; i++) {
                 ids[i] = i;
@@ -69,7 +71,7 @@ class UnionFind {
          * @return int The root of the element p.
          */
         int find(int p) {
-            if(p < 0 || p >= count) 
+            if(p < 0 || p >= length) 
                 throw std::invalid_argument("Index out of bounds");
 
             int root = ids[p];

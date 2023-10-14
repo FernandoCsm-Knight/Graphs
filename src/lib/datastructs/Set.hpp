@@ -18,9 +18,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "iterators/IteratorArray.hpp"
 #include "ArrayList.hpp"
-
+#include "iterators/IteratorArray.hpp"
 #include "../helpers/Pair.hpp"
 
 /**
@@ -63,7 +62,7 @@ template <class T> class Set {
 
             while(l <= r) {
                 int m = l + (r - l) / 2;
-
+                
                 if(this->arr[m] == element) 
                     return m;
                 else if(this->arr[m] < element) 
@@ -219,12 +218,12 @@ template <class T> class Set {
          * @return ArrayList<T> The set as a dynamic array.
          */
         ArrayList<T> toArray() const {
-            ArrayList<T> list = ArrayList<T>(this->length);
+            ArrayList<T> array = ArrayList<T>(this->length);
 
-            for(int i = 0; i < this->length; i++) 
-                list.add(this->arr[i]);
+            for(int i = 0; i < this->length; i++)
+                array.add(this->arr[i]);
 
-            return list;
+            return array;
         }
 
         /**
