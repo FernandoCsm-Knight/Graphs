@@ -14,14 +14,25 @@
 #include "lib/datastructs/MinHeap.hpp"
 #include "lib/datastructs/PriorityQueue.hpp"
 #include "lib/datastructs/HashSet.hpp"
+#include "lib/datastructs/HashMap.hpp"
 
 using std::string;
 
 int main() {
-    HashSet<int> hash;
+    HashMap<string, int> map;
 
-    for(int i = 0; i < 100; i++) 
-        hash.insert(i);
+    map.insert("a", 1);
+    map.insert("b", 2);
+    map.insert("c", 3);
+    map.insert("d", 4);
+    map.insert("e", 5);
+    map.insert("f", 6);
+    map.insert("g", 7);
+    map.insert("h", 8);
+    map.insert("i", 9);
+    map.insert("j", 10);
+    map.insert("k", 11);
+    map.insert("l", 12);
 
-    std::cout << hash << std::endl;
+    std::cout << map << std::endl;
 }
