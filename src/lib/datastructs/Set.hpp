@@ -19,7 +19,7 @@
 #include <stdexcept>
 
 #include "ArrayList.hpp"
-#include "iterators/IteratorArray.hpp"
+#include "iterators/ArrayIterator.hpp"
 #include "../helpers/Pair.hpp"
 
 /**
@@ -382,19 +382,19 @@ template <class T> class Set {
         /**
          * @brief Returns a Iterator to the beginning of the set.
          * 
-         * @return IteratorArray<T> An iterator to the beginning of the set.
+         * @return ArrayIterator<T> An iterator to the beginning of the set.
          */
-        IteratorArray<T> begin() const {
-            return IteratorArray<T>(this->arr);
+        ArrayIterator<T> begin() const {
+            return ArrayIterator<T>(this->arr);
         }
 
         /**
          * @brief Returns a Iterator to the end of the set.
          * 
-         * @return IteratorArray<T> An iterator to the end of the set.
+         * @return ArrayIterator<T> An iterator to the end of the set.
          */
-        IteratorArray<T> end() const {
-            return IteratorArray<T>(this->arr + this->length);
+        ArrayIterator<T> end() const {
+            return ArrayIterator<T>(this->arr + this->length);
         }
 
 };

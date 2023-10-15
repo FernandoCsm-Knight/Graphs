@@ -13,18 +13,15 @@
 #include "lib/Tarjan.hpp"
 #include "lib/datastructs/MinHeap.hpp"
 #include "lib/datastructs/PriorityQueue.hpp"
+#include "lib/datastructs/HashSet.hpp"
 
 using std::string;
 
 int main() {
-    Graph<string> graph;
+    HashSet<int> hash;
 
-    graph.addEdge("A", "B");
-    graph.addEdge("A", "C");
-    graph.addEdge("B", "D");
-    graph.addEdge("C", "E");
-    graph.addEdge("D", "E");
-    
-    graph.toJsonFile();
-    std::cout << graph.describe() << std::endl;
+    for(int i = 0; i < 100; i++) 
+        hash.insert(i);
+
+    std::cout << hash << std::endl;
 }

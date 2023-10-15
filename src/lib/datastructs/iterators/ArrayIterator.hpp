@@ -1,5 +1,5 @@
 /**
- * @file IteratorArray.hpp
+ * @file ArrayIterator.hpp
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
@@ -9,48 +9,45 @@
  * 
  */
 
-#ifndef ITERATOR_ARRAY_HPP
-#define ITERATOR_ARRAY_HPP
-
-#include <iostream>
-#include <stdexcept>
+#ifndef ARRAY_ITERATOR_HPP
+#define ARRAY_ITERATOR_HPP
 
 /**
  * @brief A template class implementing an iterator for an array of elements.
  *
  * @tparam T The type of elements stored in the iterator.
  */
-template <class T> class IteratorArray {
+template <class T> class ArrayIterator {
     private:
         T* ptr; ///< The pointer to the element.
 
     public:
         /**
-         * @brief Constructor for the IteratorArray.
+         * @brief Constructor for the ArrayIterator.
          *
          * @param ptr Pointer to the initial element.
          */
-        IteratorArray(T* ptr): ptr(ptr) {}
+        ArrayIterator(T* ptr): ptr(ptr) {}
 
         /**
-         * @brief Copy constructor for the IteratorArray.
+         * @brief Copy constructor for the ArrayIterator.
          *
-         * @param other Another IteratorArray to copy from.
+         * @param other Another ArrayIterator to copy from.
          */
-        IteratorArray(const IteratorArray& other): ptr(other.ptr) {}
+        ArrayIterator(const ArrayIterator& other): ptr(other.ptr) {}
 
         /**
-         * @brief Destructor for the IteratorArray.
+         * @brief Destructor for the ArrayIterator.
          */
-        ~IteratorArray() {}
+        ~ArrayIterator() {}
 
         /**
-         * @brief Assignment operator overload for the IteratorArray.
+         * @brief Assignment operator overload for the ArrayIterator.
          *
-         * @param other Another IteratorArray to assign from.
-         * @return A reference to the current IteratorArray.
+         * @param other Another ArrayIterator to assign from.
+         * @return A reference to the current ArrayIterator.
          */
-        IteratorArray& operator=(const IteratorArray& other) {
+        ArrayIterator& operator=(const ArrayIterator& other) {
             if(this != &other)
                 ptr = other.ptr;
 
@@ -60,9 +57,9 @@ template <class T> class IteratorArray {
         /**
          * @brief Pre-increment operator overload.
          *
-         * @return A reference to the current IteratorArray after incrementing.
+         * @return A reference to the current ArrayIterator after incrementing.
          */
-        IteratorArray& operator++() {
+        ArrayIterator& operator++() {
             ++ptr;
             return *this;
         }
@@ -70,10 +67,10 @@ template <class T> class IteratorArray {
         /**
          * @brief Post-increment operator overload.
          *
-         * @return A copy of the current IteratorArray before incrementing.
+         * @return A copy of the current ArrayIterator before incrementing.
          */
-        IteratorArray operator++(int) {
-            IteratorArray it(*this);
+        ArrayIterator operator++(int) {
+            ArrayIterator it(*this);
             ++(*this);
             return it;
         }
@@ -81,9 +78,9 @@ template <class T> class IteratorArray {
         /**
          * @brief Pre-decrement operator overload.
          *
-         * @return A reference to the current IteratorArray after decrementing.
+         * @return A reference to the current ArrayIterator after decrementing.
          */
-        IteratorArray& operator--() {
+        ArrayIterator& operator--() {
             --ptr;
             return *this;
         }
@@ -91,10 +88,10 @@ template <class T> class IteratorArray {
         /**
          * @brief Post-decrement operator overload.
          *
-         * @return A copy of the current IteratorArray before decrementing.
+         * @return A copy of the current ArrayIterator before decrementing.
          */
-        IteratorArray operator--(int) {
-            IteratorArray it(*this);
+        ArrayIterator operator--(int) {
+            ArrayIterator it(*this);
             --(*this);
             return it;
         }
@@ -128,62 +125,62 @@ template <class T> class IteratorArray {
         }
 
         /**
-         * @brief Equality operator overload to compare two IteratorArray objects.
+         * @brief Equality operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the two iterators are equal, otherwise false.
          */
-        bool operator==(const IteratorArray& other) const {
+        bool operator==(const ArrayIterator& other) const {
             return ptr == other.ptr;
         }
 
         /**
-         * @brief Inequality operator overload to compare two IteratorArray objects.
+         * @brief Inequality operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the two iterators are not equal, otherwise false.
          */
-        bool operator!=(const IteratorArray& other) const {
+        bool operator!=(const ArrayIterator& other) const {
             return ptr != other.ptr;
         }
 
         /**
-         * @brief Less-than operator overload to compare two IteratorArray objects.
+         * @brief Less-than operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the current iterator is less than the other, otherwise false.
          */
-        bool operator<(const IteratorArray& other) const {
+        bool operator<(const ArrayIterator& other) const {
             return ptr < other.ptr;
         }
 
         /**
-         * @brief Greater-than operator overload to compare two IteratorArray objects.
+         * @brief Greater-than operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the current iterator is greater than the other, otherwise false.
          */
-        bool operator>(const IteratorArray& other) const {
+        bool operator>(const ArrayIterator& other) const {
             return ptr > other.ptr;
         }
 
         /**
-         * @brief Less-than-or-equal operator overload to compare two IteratorArray objects.
+         * @brief Less-than-or-equal operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the current iterator is less than or equal to the other, otherwise false.
          */
-        bool operator<=(const IteratorArray& other) const {
+        bool operator<=(const ArrayIterator& other) const {
             return ptr <= other.ptr;
         }
 
         /**
-         * @brief Greater-than-or-equal operator overload to compare two IteratorArray objects.
+         * @brief Greater-than-or-equal operator overload to compare two ArrayIterator objects.
          *
-         * @param other Another IteratorArray to compare with.
+         * @param other Another ArrayIterator to compare with.
          * @return True if the current iterator is greater than or equal to the other, otherwise false.
          */
-        bool operator>=(const IteratorArray& other) const {
+        bool operator>=(const ArrayIterator& other) const {
             return ptr >= other.ptr;
         }
 
@@ -191,9 +188,9 @@ template <class T> class IteratorArray {
          * @brief Addition-assignment operator overload to increment the iterator by an offset.
          *
          * @param offset The value by which the iterator should be incremented.
-         * @return A reference to the current IteratorArray after incrementing.
+         * @return A reference to the current ArrayIterator after incrementing.
          */
-        IteratorArray& operator+=(int offset) {
+        ArrayIterator& operator+=(int offset) {
             ptr += offset;
             return *this;
         }
@@ -202,9 +199,9 @@ template <class T> class IteratorArray {
          * @brief Subtraction-assignment operator overload to decrement the iterator by an offset.
          *
          * @param offset The value by which the iterator should be decremented.
-         * @return A reference to the current IteratorArray after decrementing.
+         * @return A reference to the current ArrayIterator after decrementing.
          */
-        IteratorArray& operator-=(int offset) {
+        ArrayIterator& operator-=(int offset) {
             ptr -= offset;
             return *this;
         }

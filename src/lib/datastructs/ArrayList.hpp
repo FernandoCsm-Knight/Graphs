@@ -25,7 +25,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "iterators/IteratorArray.hpp"
+#include "iterators/ArrayIterator.hpp"
 
 template <class T> class ArrayList;
 #include "Set.hpp"
@@ -361,7 +361,7 @@ template <class T> class ArrayList {
          * @throw std::out_of_range If the index is out of range.
          */
         T& operator[](std::size_t idx) {
-            if (idx >= (std::size_t)this->length) 
+            if(idx >= (std::size_t)this->length) 
                 throw std::out_of_range("Index out of range");
             return this->array[idx];
         }
@@ -378,6 +378,25 @@ template <class T> class ArrayList {
                 throw std::out_of_range("Index out of range");
                 
             this->array[index] = element;
+        }
+
+        /**
+         * @brief Resize the array list to the given capacity.
+         * 
+         * @param capacity The new capacity of the array list.
+         */
+        void resize(int capacity) {
+            if (capacity <= this->length) 
+                throw std::invalid_argument("The capacity must be greater than 1");
+
+            T* newArray = new T[capacity];
+            for(int i = 0; i < this->length; i++) 
+                newArray[i] = this->array[i];
+            
+            delete[] this->array;
+            this->array = newArray;
+            this->maxLength = capacity;
+            this->dynamic = false;
         }
 
         /**
@@ -474,6 +493,11 @@ template <class T> class ArrayList {
             return arr;
         }
 
+        /**
+         * @brief Returns a copy of the array list as a set.
+         * 
+         * @return Set<T> A copy of the array list as a set.
+         */
         Set<T> toSet() const {
             Set<T> set;
             for(int i = 0; i < this->length; i++) 
@@ -487,8 +511,8 @@ template <class T> class ArrayList {
          * 
          * @return Iterator<T> An iterator pointing to the first element in the array list.
          */
-        IteratorArray<T> begin() const {
-            return IteratorArray<T>(this->array);
+        ArrayIterator<T> begin() const {
+            return ArrayIterator<T>(this->array);
         }
 
         /**
@@ -496,8 +520,8 @@ template <class T> class ArrayList {
          * 
          * @return Iterator<T> An iterator pointing to the element after the last element in the array list.
          */
-        IteratorArray<T> end() const {
-            return IteratorArray<T>(this->array + this->length);
+        ArrayIterator<T> end() const {
+            return ArrayIterator<T>(this->array + this->length);
         }
 
         // Friend functions for overloading stream insertion and equality operators.

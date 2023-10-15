@@ -47,6 +47,7 @@ template <class V> class Graph {
     public:
     
         // Constructors & Destructor
+
         Graph() {}
 
         Graph(bool isDirected): isDig(isDirected) {}
@@ -228,6 +229,90 @@ template <class V> class Graph {
                 list.add(this->degree(vertices[i]));
 
             return list;
+        }
+
+        int connectedComponents() const {
+            if(!isDig) {
+                UnionFind uf(this->size());
+                ArrayList<V> vertices = adj.keys();
+
+                for(Edge<V> e : edges) 
+                    uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+                
+                return uf.numberOfComponents();
+            }
+
+            return -1;
+        }
+
+        ArrayList<ArrayList<V>> stronglyConnectedComponents() const {
+            if(!isDig) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
+            
+            ArrayList<V> vertices = adj.keys();
+        
+            int id = 0;
+            int ids[vertices.size()];
+            int lowLink[vertices.size()];
+            bool onStack[vertices.size()];
+            Stack<V> stack;
+            Stack<V> dfsStack;
+            ArrayList<ArrayList<V>> components;
+
+            for(int i = 0; i < vertices.size(); i++) {
+                ids[i] = -1;
+                lowLink[i] = -1;
+                onStack[i] = false;
+            }
+
+            for(int i = 0; i < vertices.size(); i++) {
+                if(ids[i] == -1) {
+                    dfsStack.push(vertices[i]);
+                    stack.push(vertices[i]);
+                    ids[i] = id;
+                    lowLink[i] = id;
+                    onStack[i] = true;
+                    id++;
+
+                    while(!dfsStack.isEmpty()) {
+                        V u = dfsStack.peek();
+                        int indexU = vertices.indexOf(u, true);
+                        bool done = true;
+
+                        for(V w : adj.get(u)) {
+                            int indexW = vertices.indexOf(w, true);
+
+                            if(ids[indexW] == -1) {
+                                dfsStack.push(w);
+                                stack.push(w);
+                                ids[indexW] = id;
+                                lowLink[indexW] = id;
+                                onStack[indexW] = true;
+                                id++;
+                                done = false;
+                                break;
+                            } else if(onStack[indexW]) {
+                                lowLink[indexU] = std::min(lowLink[indexW], lowLink[indexU]);
+                            }
+                        }
+
+                        if(done) {
+                            dfsStack.pop();
+                            if(lowLink[indexU] == ids[indexU]) {
+                                ArrayList<V> list;
+                                V w;
+                                do {
+                                    w = stack.pop();
+                                    onStack[vertices.indexOf(w, true)] = false;
+                                    list.add(w);
+                                } while(w != u);
+                                components.add(list);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return components;
         }
 
         void transpose() {
@@ -412,6 +497,7 @@ template <class V> class Graph {
             std::string s = "";
 
             s.append((isDig ? "Directed" : "Undirected"));
+            s.append((connectedComponents() == 1 ? " Connected" : " Disconnected"));
             s.append((isRegular() ? " Regular" : ""));
             s.append((isComplete() ? " Complete" : ""));
             s.append((isBipartite() ? " Bipartite" : ""));
