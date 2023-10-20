@@ -55,7 +55,7 @@ template <class V> class Edge {
          * 
          * @param edge The Edge object to copy.
          */
-        Edge(Edge<V>& edge): src(edge.src), dest(edge.dest), weight(edge.weight), isDir(edge.isDir) {}
+        Edge(const Edge<V>& edge): src(edge.src), dest(edge.dest), weight(edge.weight), isDir(edge.isDir) {}
 
         /**
          * @brief Destructor for an edge.

@@ -24,8 +24,10 @@
 #include "datastructs/ArrayList.hpp"
 #include "datastructs/Map.hpp"
 #include "datastructs/Queue.hpp"
+#include "datastructs/Stack.hpp"
 #include "datastructs/Set.hpp"
 #include "datastructs/PriorityQueue.hpp"
+#include "datastructs/IndexedPriorityQueue.hpp"
 #include "datastructs/UnionFind.hpp"
 
 #include "helpers/Edge.hpp"
@@ -145,9 +147,7 @@ template <class V> class Graph {
                         int indexU = vertices.indexOf(u, true);
 
                         visited[indexU] = true;
-                        Set<V> set = adj.get(u);
-                        for(int j = 0; j < set.size() && value; j++) {
-                            V v = set.get(j);
+                        for(V v : adj.get(u)) {
                             int indexV = vertices.indexOf(v, true);
 
                             if(!visited[indexV]) {
@@ -247,7 +247,7 @@ template <class V> class Graph {
 
         ArrayList<ArrayList<V>> stronglyConnectedComponents() const {
             if(!isDig) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
-            
+
             ArrayList<V> vertices = adj.keys();
         
             int id = 0;
@@ -408,7 +408,50 @@ template <class V> class Graph {
             return (pair.second() == dest) ? pair.first() : -1;
         }
 
-        Path<V> shortestPaht(const V& src, const V& dest) const {
+        Map<V, double> dijkstra(const V& vertex) const {
+            if(!adj.contains(vertex)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            ArrayList<V> vertices = adj.keys();
+            PriorityQueue<Pair<double, V>> queue;
+            double distances[this->size()];
+            bool visited[this->size()];
+
+            for(int i = 0; i < this->size(); i++) {
+                distances[i] = __DBL_MAX__;
+                visited[i] = false;
+            }
+
+            distances[vertices.indexOf(vertex, true)] = 0;
+            queue.push(Pair<double, V>(0.0, vertex));
+
+            while(!queue.isEmpty()) {
+                V w = queue.poll().second();
+                int indexW = vertices.indexOf(w, true);
+
+                visited[indexW] = true;
+                for(V u : adj.get(w)) {
+                    int indexU = vertices.indexOf(u, true);
+
+                    if(!visited[indexU]) {
+                        if(distances[indexU] < distances[indexW] + weight(w, u)) 
+                            distances[indexU] = distances[indexU];
+                        else 
+                            distances[indexU] = distances[indexW] + weight(w, u);
+
+                        queue.push(Pair<double, V>(distances[indexU], u));
+                    }
+                }
+            }
+
+            Map<V, double> map;
+            for(int i = 0; i < vertices.size(); i++) 
+                map.put(vertices[i], distances[i]);
+            
+            return map;
+        }
+
+        Path<V> shortestPath(const V& src, const V& dest) const {
             if(!adj.contains(src) || !adj.contains(dest)) 
                 throw std::invalid_argument("The given vertices do not exist in the graph.");
 
@@ -484,6 +527,40 @@ template <class V> class Graph {
             } 
 
             return edges.get(idx).getWeight();
+        }
+
+        Path<Edge<V>> minimumSpanningTree() const {
+            IndexedPriorityQueue<Pair<double, Edge<V>>> queue(this->size());
+            ArrayList<V> vertices = adj.keys();
+            bool visited[this->size()];
+            Path<Edge<V>> path;
+
+            for(int i = 0; i < this->size(); i++) 
+                visited[i] = false;
+
+            queue.insert(0, Pair<double, Edge<V>>(0.0, Edge<V>(vertices[0], vertices[0], isDig)));
+
+            while(!queue.isEmpty()) {
+                visited[queue.minKey()] = true;
+                Pair<double, Edge<V>> pair = queue.poll();
+                path.add(pair.second(), pair.first());
+
+                V u = pair.second().getDestination();
+                for(V w : adj.get(u)) {
+                    int indexW = vertices.indexOf(w, true);
+                
+                    if(!visited[indexW]) {
+                        double weight = this->weight(u, w);
+
+                        if(queue.contains(indexW)) 
+                            queue.decrease(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, isDig, weight)));
+                        else 
+                            queue.insert(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, isDig, weight)));
+                    }
+                }
+            }
+
+            return path;
         }
 
         void clear() {

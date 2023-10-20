@@ -14,44 +14,98 @@ template <typename K, typename V> class HashMap {
             KeyValue(const K& k, const V& v) : key(k), value(v), next(nullptr) {}
         };
 
-        std::size_t length;
-        std::size_t capacity;
+        int length;
+        int capacity;
         ArrayList<KeyValue*> table;
 
-        std::size_t hash(const K& key) {
+        std::size_t hash(const K& key) const {
             return std::hash<K>{}(key) % capacity;
         }
 
     public:
-        HashMap(std::size_t capacity = 16) {
+        HashMap(int capacity = 16) {
             this->capacity = capacity;
             this->length = 0;
             table.resize(capacity);
 
-            for(std::size_t i = 0; i < capacity; ++i) 
+            for(int i = 0; i < capacity; ++i) 
                 table.add(nullptr);
+        }
+
+        HashMap(const HashMap<K, V>& other) : capacity(other.capacity), length(other.length) {
+            table.resize(capacity);
+            for(int i = 0; i < capacity; ++i) 
+                table.add(nullptr);
+
+            for (int i = 0; i < capacity; ++i) {
+                if (other.table.get(i) != nullptr) {
+                    KeyValue* current = other.table.get(i);
+                    KeyValue* prev = nullptr;
+                    while (current != nullptr) {
+                        KeyValue* newKeyValue = new KeyValue(current->key, current->value);
+                        if (prev == nullptr) {
+                            table[i] = newKeyValue;
+                        } else {
+                            prev->next = newKeyValue;
+                        }
+                        prev = newKeyValue;
+                        current = current->next;
+                    }
+                }
+            }
         }
 
         ~HashMap() {
             clear();
         }
 
+        HashMap<K, V>& operator=(const HashMap<K, V>& other) {
+            if (this != &other) {
+                clear();
+                table.clear();
+                capacity = other.capacity;
+                length = other.length;
+                table.resize(capacity);
+
+                for(int i = 0; i < capacity; ++i) 
+                    table.add(nullptr);
+
+                for (int i = 0; i < capacity; ++i) {
+                    if (other.table.get(i) != nullptr) {
+                        KeyValue* current = other.table.get(i);
+                        KeyValue* prev = nullptr;
+                        while (current != nullptr) {
+                            KeyValue* newKeyValue = new KeyValue(current->key, current->value);
+                            if (prev == nullptr) {
+                                table[i] = newKeyValue;
+                            } else {
+                                prev->next = newKeyValue;
+                            }
+                            prev = newKeyValue;
+                            current = current->next;
+                        }
+                    }
+                }
+            }
+
+            return *this;
+        }
+
         void clear() {
-            for (std::size_t i = 0; i < capacity; ++i) {
+            for(int i = 0; i < capacity; ++i) {
                 KeyValue* current = table[i];
                 while(current != nullptr) {
                     KeyValue* temp = current;
                     current = current->next;
                     delete temp;
                 }
-
                 table[i] = nullptr;
             }
 
             length = 0;
         }
 
-        void insert(const K& key, const V& value) {
+        void put(const K& key, const V& value) {
             std::size_t index = hash(key);
             KeyValue* current = table[index];
 
@@ -72,9 +126,9 @@ template <typename K, typename V> class HashMap {
                 resize(capacity * 2);
         }
 
-        V get(const K& key) {
+        V get(const K& key) const {
             std::size_t index = hash(key);
-            KeyValue* current = table[index];
+            KeyValue* current = table.get(index);
 
             while(current != nullptr && current->key != key) 
                 current = current->next;
@@ -107,7 +161,7 @@ template <typename K, typename V> class HashMap {
         }
 
         bool remove(const K& key) {
-            size_t index = hash(key);
+            std::size_t index = hash(key);
             KeyValue* current = table[index];
             KeyValue* prev = nullptr;
 
@@ -128,9 +182,9 @@ template <typename K, typename V> class HashMap {
             return false;
         }
 
-        bool contains(const K& key) {
+        bool contains(const K& key) const {
             std::size_t index = hash(key);
-            KeyValue* current = table[index];
+            KeyValue* current = table.get(index);
 
             while(current != nullptr && current->key != key) 
                 current = current->next;
@@ -138,14 +192,14 @@ template <typename K, typename V> class HashMap {
             return current != nullptr;
         }
 
-        void resize(std::size_t newCapacity) {
+        void resize(int newCapacity) {
             ArrayList<KeyValue*> newTable;
             newTable.resize(newCapacity);
 
-            for(std::size_t i = 0; i < newCapacity; ++i) 
+            for(int i = 0; i < newCapacity; ++i) 
                 newTable.add(nullptr);
 
-            for(std::size_t i = 0; i < capacity; ++i) {
+            for(int i = 0; i < capacity; ++i) {
                 KeyValue* current = table[i];
                 while(current != nullptr) {
                     KeyValue* temp = current;
@@ -162,7 +216,7 @@ template <typename K, typename V> class HashMap {
             capacity = newCapacity;
         }
 
-        std::size_t size() const {
+        int size() const {
             return this->length;
         }
 
@@ -173,8 +227,8 @@ template <typename K, typename V> class HashMap {
         ArrayList<K> keys() const {
             ArrayList<K> keys;
 
-            for(std::size_t i = 0; i < capacity; ++i) {
-                KeyValue* current = table[i];
+            for(int i = 0; i < capacity; ++i) {
+                KeyValue* current = table.get(i);
                 while(current != nullptr) {
                     keys.add(current->key);
                     current = current->next;
@@ -199,26 +253,25 @@ template <typename K, typename V> class HashMap {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const HashMap<K, V>& map) {
-            os << "[ ";
-            for(std::size_t i = 0; i < map.capacity; ++i) {
-                int j = 0;
+            os << "{ " << std::endl;
+            for(int i = 0; i < map.capacity; ++i) {
                 KeyValue* current = map.table.get(i);
-                if(current != nullptr) os << "[";
+                int j = 0;
 
                 while(current != nullptr) {
                     ++j;
-                    os << "(" << current->key << ", " << current->value << ")";
+                    os << "\t" << current->key << ": " << current->value;
                     current = current->next;
                     if(current != nullptr) os << ", ";
                 }
 
-                if(j > 0) {
-                    os << "] ";
+                if(j != 0) {
+                    os << std::endl;
                     j = 0;
                 }
             }
 
-            return os << "]";
+            return os << "}";
         }
 };
 
