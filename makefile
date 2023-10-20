@@ -10,9 +10,12 @@ SRCS := $(wildcard $(SRCDIR)/*.cpp)
 OBJDIR := obj
 OBJS := $(addprefix $(OBJDIR)/, $(notdir $(SRCS:.cpp=.o)))
 
-# Binary files direcotry
+# Binary files directory
 BINDIR := bin
 EXE := $(BINDIR)/main
+
+# Log directory
+LOGDIR := log
 
 # Phony targets
 .PHONY: all clean
@@ -36,7 +39,8 @@ valgrind: $(EXE)
 
 # Run target
 run: $(EXE)
-	./$(EXE)
+	@mkdir -p $(LOGDIR)
+	./$(EXE) > $(LOGDIR)/output.log 2>&1
 
 # Rebuild target
 rebuild: clean all
@@ -46,4 +50,4 @@ rerun: rebuild run
 
 # Clean the generated files
 clean:
-	$(RM) -r $(OBJDIR) $(EXE)
+	$(RM) -r $(OBJDIR) $(EXE) $(LOGDIR)
