@@ -39,8 +39,8 @@ valgrind: $(EXE)
 
 # Run target
 run: $(EXE)
-	@mkdir -p $(LOGDIR)
-	./$(EXE) > $(LOGDIR)/output.log 2>&1
+	@mkdir -p $(SRCDIR)/$(LOGDIR)
+	./$(EXE)
 
 # Rebuild target
 rebuild: clean all

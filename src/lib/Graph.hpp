@@ -20,6 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <cmath>
 
 #include "datastructs/ArrayList.hpp"
 #include "datastructs/Map.hpp"
@@ -47,7 +48,7 @@ template <class V> class Graph {
         bool isDig = false; ///< Indicates whether the graph is directed.
 
     public:
-    
+
         // Constructors & Destructor
 
         Graph() {}
@@ -418,7 +419,7 @@ template <class V> class Graph {
             bool visited[this->size()];
 
             for(int i = 0; i < this->size(); i++) {
-                distances[i] = __DBL_MAX__;
+                distances[i] = std::numeric_limits<double>::max();
                 visited[i] = false;
             }
 
@@ -468,7 +469,7 @@ template <class V> class Graph {
             V parents[this->size()];
 
             for(int i = 0; i < this->size(); i++) {
-                distances[i] = __DBL_MAX__;
+                distances[i] = std::numeric_limits<double>::max();
                 visited[i] = false;
             }
 
@@ -498,7 +499,7 @@ template <class V> class Graph {
             }
 
             int indexDest = vertices.indexOf(dest, true);
-            if(distances[indexDest] == __DBL_MAX__)
+            if(distances[indexDest] == std::numeric_limits<double>::max())
                 return Path<V>();
 
             Path<V> path;
@@ -562,6 +563,46 @@ template <class V> class Graph {
 
             return path;
         }
+
+        ArrayList<V> clasp(const V& vertex, const char& type = '+') {
+            if(!adj.contains(vertex))
+                throw std::invalid_argument("The given vertex does not exist in the graph.");
+
+            if(type != '+' && type != '-') 
+                throw std::invalid_argument("The given type is not valid.");
+
+            ArrayList<V> clp;
+
+            if(type == '+') {
+                Stack<V> stack;
+                stack.push(vertex);
+
+                ArrayList<V> vertices = adj.keys();
+                bool visited[this->size()];
+
+                for(int i = 0; i < this->size(); i++) 
+                    visited[i] = false;
+
+                while(!stack.isEmpty()) {
+                    V u = stack.pop();
+                    clp.add(u);
+
+                    visited[vertices.indexOf(u, true)] = true;
+                    for(V v : adj.get(u)) {
+                        if(!visited[vertices.indexOf(v, true)]) 
+                            stack.push(v);
+                    }
+                }
+            } else {
+                Graph<V> tmp(*this);
+                tmp.transpose();
+                clp = tmp.clasp(vertex);
+            }
+
+            return clp;
+        }
+
+
 
         void clear() {
             adj.clear();
