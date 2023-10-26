@@ -18,6 +18,10 @@ template <class V> class Path {
             weight = 0.0;
         }
 
+        Path(double weight) {
+            this->weight = weight;
+        }
+
         Path(const ArrayList<V> path, double weight) {
             this->path = path;
             this->weight = weight;
@@ -78,14 +82,14 @@ template <class V> class Path {
         }
 
         friend std::ostream& operator<<(std::ostream& os, const Path<V>& path) {
-            os << "Path: ";
+            os << "Path: " << ((path.path.size() == 0) ? "{}" : "");
             for (int i = 0; i < path.path.size(); i++) {
                 os << path.path.get(i);
                 if (i != path.path.size() - 1)
                     os << " -> ";
             }
 
-            os << std::endl << "Weight: " << path.weight << std::endl;
+            os << " | Weight: " << path.weight;
             return os;
         }
 };

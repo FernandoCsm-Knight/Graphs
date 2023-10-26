@@ -119,6 +119,7 @@ The following algorithms are implemented:
 - [Breadth First Search](src/lib/Graph.hpp)
 - [Depth First Search](src/lib/Graph.hpp)
 - [Dijkstra](src/lib/Graph.hpp)
+- [Bellman Ford](src/lib/Graph.hpp)
 - [Prim - MST](src/lib/Graph.hpp)
 - [Tarjan - Strongly Connected Components](src/lib/Tarjan.hpp)
 

@@ -47,6 +47,26 @@ template <class V> class Graph {
         Set<Edge<V>> edges; ///< The edge list of the graph.
         bool isDig = false; ///< Indicates whether the graph is directed.
 
+        Path<V> parentsToPath(V* parents, double* distances, V dest) const {
+            ArrayList<V> vertices = adj.keys();
+            int indexDest = vertices.indexOf(dest, true);
+            if(distances[indexDest] == std::numeric_limits<double>::infinity()) 
+                return Path<V>(distances[indexDest]);
+
+            Path<V> path;
+            int index = indexDest;
+            V tmp = parents[index];
+            while(vertices[index] != tmp) {
+                path.addParent(vertices[index]);
+                index = vertices.indexOf(tmp, true);
+                tmp = parents[index];
+            }
+
+            path.addParent(vertices[index]);
+            path.setWeight(distances[indexDest]);
+            return path;
+        }
+
     public:
 
         // Constructors & Destructor
@@ -409,45 +429,82 @@ template <class V> class Graph {
             return (pair.second() == dest) ? pair.first() : -1;
         }
 
-        Map<V, double> dijkstra(const V& vertex) const {
+        Map<V, Path<V>> shortestPath(const V& vertex) const {
             if(!adj.contains(vertex)) 
                 throw std::invalid_argument("The given vertices do not exist in the graph.");
 
+            bool hasNegativeWeight = false;
+            for(int i = 0; i < edges.size() && !hasNegativeWeight; i++) 
+                hasNegativeWeight = edges.get(i).getWeight() < 0;
+
             ArrayList<V> vertices = adj.keys();
-            PriorityQueue<Pair<double, V>> queue;
             double distances[this->size()];
-            bool visited[this->size()];
+            V parents[this->size()];
 
             for(int i = 0; i < this->size(); i++) {
-                distances[i] = std::numeric_limits<double>::max();
-                visited[i] = false;
+                distances[i] = std::numeric_limits<double>::infinity();
+                parents[i] = vertices[i];
             }
 
             distances[vertices.indexOf(vertex, true)] = 0;
-            queue.push(Pair<double, V>(0.0, vertex));
 
-            while(!queue.isEmpty()) {
-                V w = queue.poll().second();
-                int indexW = vertices.indexOf(w, true);
+            if(hasNegativeWeight) {
+                for(int i = 0; i < this->size() - 1; i++) {
+                    for(Edge<V> edge : edges) {
+                        int indexSrc = vertices.indexOf(edge.getSource(), true);
+                        int indexDest = vertices.indexOf(edge.getDestination(), true);
 
-                visited[indexW] = true;
-                for(V u : adj.get(w)) {
-                    int indexU = vertices.indexOf(u, true);
+                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
+                            distances[indexDest] = distances[indexSrc] + edge.getWeight();
+                            parents[indexDest] = edge.getSource();
+                        }
+                    }
+                }
 
-                    if(!visited[indexU]) {
-                        if(distances[indexU] < distances[indexW] + weight(w, u)) 
-                            distances[indexU] = distances[indexU];
-                        else 
-                            distances[indexU] = distances[indexW] + weight(w, u);
+                for(int i = 0; i < this->size() - 1; i++) {
+                    for(Edge<V> edge : edges) {
+                        int indexSrc = vertices.indexOf(edge.getSource(), true);
+                        int indexDest = vertices.indexOf(edge.getDestination(), true);
 
-                        queue.push(Pair<double, V>(distances[indexU], u));
+                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
+                            distances[indexDest] = -std::numeric_limits<double>::infinity();
+                            parents[indexDest] = edge.getSource();
+                        }
+                    }
+                }
+            } else {
+                PriorityQueue<Pair<double, V>> queue;
+                bool visited[this->size()];
+
+                for(int i = 0; i < this->size(); i++) 
+                    visited[i] = false;
+
+                queue.push(Pair<double, V>(0.0, vertex));
+                while(!queue.isEmpty()) {
+                    V w = queue.poll().second();
+                    int indexW = vertices.indexOf(w, true);
+
+                    visited[indexW] = true;
+                    for(V u : adj.get(w)) {
+                        int indexU = vertices.indexOf(u, true);
+
+                        if(!visited[indexU]) {
+                            if(distances[indexU] < distances[indexW] + weight(w, u)) {
+                                distances[indexU] = distances[indexU];
+                            } else {
+                                distances[indexU] = distances[indexW] + weight(w, u);
+                                parents[indexU] = w;
+                            }
+
+                            queue.push(Pair<double, V>(distances[indexU], u));
+                        }
                     }
                 }
             }
 
-            Map<V, double> map;
+            Map<V, Path<V>> map;
             for(int i = 0; i < vertices.size(); i++) 
-                map.put(vertices[i], distances[i]);
+                map.put(vertices[i], parentsToPath(parents, distances, vertices[i]));
             
             return map;
         }
@@ -456,64 +513,7 @@ template <class V> class Graph {
             if(!adj.contains(src) || !adj.contains(dest)) 
                 throw std::invalid_argument("The given vertices do not exist in the graph.");
 
-            if(src == dest) {
-                ArrayList<V> list;
-                list.add(src);
-                return Path<V>(list, weight(src, dest));
-            }
-
-            ArrayList<V> vertices = adj.keys();
-            PriorityQueue<Pair<double, V>> queue;
-            double distances[this->size()];
-            bool visited[this->size()];
-            V parents[this->size()];
-
-            for(int i = 0; i < this->size(); i++) {
-                distances[i] = std::numeric_limits<double>::max();
-                visited[i] = false;
-            }
-
-            parents[vertices.indexOf(src, true)] = src;
-            distances[vertices.indexOf(src, true)] = 0;
-            queue.push(Pair<double, V>(0.0, src));
-
-            while(!queue.isEmpty()) {
-                V w = queue.poll().second();
-                int indexW = vertices.indexOf(w, true);
-
-                visited[indexW] = true;
-                for(V u : adj.get(w)) {
-                    int indexU = vertices.indexOf(u, true);
-
-                    if(!visited[indexU]) {
-                        if(distances[indexU] < distances[indexW] + weight(w, u)) {
-                            distances[indexU] = distances[indexU];
-                        } else {
-                            parents[indexU] = w;
-                            distances[indexU] = distances[indexW] + weight(w, u);
-                        }
-
-                        queue.push(Pair<double, V>(distances[indexU], u));
-                    }
-                }
-            }
-
-            int indexDest = vertices.indexOf(dest, true);
-            if(distances[indexDest] == std::numeric_limits<double>::max())
-                return Path<V>();
-
-            Path<V> path;
-            int index = indexDest;
-            V tmp = parents[index];
-            while(vertices[index] != tmp) {
-                path.addParent(vertices[index]);
-                index = vertices.indexOf(tmp, true);
-                tmp = parents[index];
-            }
-
-            path.addParent(vertices[index]);
-            path.setWeight(distances[indexDest]);
-            return path;
+            return this->shortestPath(src)[dest];
         }
 
         double weight(const V& src, const V& dest) const {

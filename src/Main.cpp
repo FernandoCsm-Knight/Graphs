@@ -12,7 +12,7 @@ using std::string;
 int main() {
     Graph<string> graph(true);
 
-    graph.addEdge("A", "B", 1);
+    graph.addEdge("A", "B", -1);
     graph.addEdge("A", "C", 2);
     graph.addEdge("B", "E", 3);
     graph.addEdge("C", "D", 4);
@@ -21,7 +21,7 @@ int main() {
     graph.addVertex("M");
 
     graph.toJsonFile();
-    std::cout << graph.clasp("A", '-') << std::endl;
+    std::cout << graph.shortestPath("A", "B") << std::endl;
 
     // TestBuilder test;
     // test.addTest(TestType::graph_t);
