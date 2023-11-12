@@ -10,18 +10,20 @@
 using std::string;
 
 int main() {
-    Graph<string> graph(true);
+    ArrayList<int> comp;
 
-    graph.addEdge("A", "B", -1);
-    graph.addEdge("A", "C", 2);
-    graph.addEdge("B", "E", 3);
-    graph.addEdge("C", "D", 4);
-    graph.addEdge("E", "F", 5);
-    graph.addEdge("G", "H", 6);
-    graph.addVertex("M");
+    comp.addInOrder(1);
+    comp.addInOrder(2);
+    comp.addInOrder(3);
+    comp.addInOrder(4);
+    comp.addInOrder(5);
+    comp.addInOrder(5);
+    comp.addInOrder(5);
+    comp.addInOrder(6);
+    comp.addInOrder(7);
 
-    graph.toJsonFile();
-    std::cout << graph.shortestPath("A", "B") << std::endl;
+    std::cout << comp << std::endl;
+    std::cout << comp.lastIndexOf(1, true) << std::endl;
 
     // TestBuilder test;
     // test.addTest(TestType::graph_t);

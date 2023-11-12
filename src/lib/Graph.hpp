@@ -374,6 +374,18 @@ template <class V> class Graph {
             }
         }
 
+        bool changeWeight(const V& src, const V& dest, double weight) {
+            return this->changeWeight(Edge<V>(src, dest, isDig, weight));
+        }
+
+        bool changeWeight(const Edge<V>& edge) {
+            int idx = edges.search(edge);
+            if(idx != -1 && edges[idx].getWeight() != edge.getWeight()) 
+                    edges[idx] = edge;
+            
+            return idx != -1;
+        }
+
         void addEdge(const V& src, const V& dest, double weight = 0.0) {
             this->addEdge(Edge<V>(src, dest, isDig, weight));
         }
@@ -564,7 +576,7 @@ template <class V> class Graph {
             return path;
         }
 
-        ArrayList<V> clasp(const V& vertex, const char& type = '+') {
+        ArrayList<V> clasp(const V& vertex, const char& type = '+') const {
             if(!adj.contains(vertex))
                 throw std::invalid_argument("The given vertex does not exist in the graph.");
 
@@ -602,7 +614,36 @@ template <class V> class Graph {
             return clp;
         }
 
+        Map<V, Pair<int, int>> times(const V& vertex) const {
+            ArrayList<V> vertices = adj.keys();
+            Map<V, Pair<int, int>> map;
 
+            Stack<V> stack;
+            stack.push(vertex);
+
+            int time = 0;
+            while(!stack.isEmpty()) {
+                V v = stack.peek();
+                
+                if(!map.contains(v))
+                    map.put(v, Pair<int, int>(++time));
+
+                bool done = true;
+                for(V u : adj.get(v)) {
+                    if(!map.contains(u)) {
+                        stack.push(u);
+                        done = false;
+                    }
+                }
+
+                if(done) {
+                    stack.pop();
+                    map[v].second() = ++time;
+                }
+            }
+
+            return map;
+        }
 
         void clear() {
             adj.clear();
