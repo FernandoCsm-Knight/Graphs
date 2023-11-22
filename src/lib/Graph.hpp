@@ -336,6 +336,101 @@ template <class V> class Graph {
             return components;
         }
 
+        Pair<ArrayList<Edge<V>&>, Edge<V>&> getIncomingEdges(const V& vertex) {
+            ArrayList<Edge<V>&> list;
+            Edge<V>& minEdge;
+            bool first = true;
+
+            for(int i = 0; i < edges.size(); i++)  {
+                if(edges[i].getDestination() == vertex) {
+                    if(first) {
+                        minEdge = edges[i];
+                        first = false;
+                    }
+
+                    list.add(edges[i]);
+                    if(edges[i].getWeight() < minEdge.getWeight()) 
+                        minEdge = edges[i];
+                }
+            }
+
+            return Pair<ArrayList<Edge<V>&>, Edge<V>&>(list, minEdge);
+        }
+
+        Graph<V> chuLiuEdmonds(const V& root) const {
+            Graph<V> response(true);
+            ArrayList<V> vertices = adj.keys();
+
+            for(V u : vertices) {
+                if(u != root) {
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = this->getIncomingEdges(u);
+                    response.addEdge(minEdge.second());
+                }
+            }
+
+            ArrayList<ArrayList<V>> components = response.stronglyConnectedComponents();
+            
+            bool hasNoCycles = true;
+            for(ArrayList<V> list : components) 
+                if(list.size() > 1) hasNoCycles = false;
+
+            if(hasNoCycles) {
+                std::cout << "Entrou!" << std::endl;
+                return response;
+            }
+
+            Graph<V> tmp(*this);
+            tmp.contractCycles(components, root);
+
+            vertices = tmp.adj.keys();
+            for(V u : vertices) {
+                if(u != root) {
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = tmp.getIncomingEdges(u);
+                    response.addEdge(minEdge.second());
+                }
+            }
+
+            std::cout << "Não entrou!" << std::endl;
+            return response;
+        }
+
+        bool contractCycles(ArrayList<ArrayList<V>> components = ArrayList<ArrayList<V>>(), const V& root = V()) {
+            if(components.isEmpty()) 
+                components = this->stronglyConnectedComponents();
+            
+            bool hasNoCycles = true;
+            for(ArrayList<V> list : components) 
+                if(list.size() > 1) hasNoCycles = false;
+
+            if(hasNoCycles) return false;
+
+            for(ArrayList<V> list : components) {
+                if(list.size() > 1) {
+                    V u = (list.contains(root)) ? root : list[0];
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = this->getIncomingEdges(u);
+
+                    for(Edge<V>& edge : pair.fisrt()) 
+                        edge.setWeight(edge.getWeight() - pair.second().getWeight());
+
+                    for(int i = 1; i < list.size(); i++) {
+                        V v = list[i];
+                        pair = this->getIncomingEdges(v);
+
+                        for(Edge<V>& edge : pair.first()) {
+                            edge.setWeight(edge.getWeight() - pair.second().getWeight());
+                            if(!list.contains(edge.getSource()))
+                                edge.setDestination(u);
+                        }
+                    }
+
+                    for(int i = 1; i < list.size(); i++) 
+                        this->removeVertex(list[i]);
+                }
+            }
+
+            return  true;
+        }
+
         void transpose() {
             if(isDig) {
                 Map<V, Set<V>> tmp(adj);

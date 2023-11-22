@@ -10,26 +10,18 @@
 using std::string;
 
 int main() {
-    ArrayList<int> comp;
+    Graph<int> graph(true);
 
-    comp.addInOrder(1);
-    comp.addInOrder(2);
-    comp.addInOrder(3);
-    comp.addInOrder(4);
-    comp.addInOrder(5);
-    comp.addInOrder(5);
-    comp.addInOrder(5);
-    comp.addInOrder(6);
-    comp.addInOrder(7);
+    graph.addEdge(0, 1, 1.0);
+    graph.addEdge(0, 2, 20.0);
+    graph.addEdge(0, 3, 30.0);
+    graph.addEdge(1, 2, 2.0);
+    graph.addEdge(2, 1, 2.0);
+    graph.addEdge(1, 3, 3.0);
+    graph.addEdge(3, 1, 3.0);
+    graph.addEdge(2, 3, 1.0);
+    graph.addEdge(3, 2, 3.0);
 
-    std::cout << comp << std::endl;
-    std::cout << comp.lastIndexOf(1, true) << std::endl;
-
-    // TestBuilder test;
-    // test.addTest(TestType::graph_t);
-    // test.addTest(TestType::digraph_t);
-    // test.addTest(TestType::dijkstra_t);
-    // test.addTest(TestType::mst_t);
-    // test.run();
+    graph.chuLiuEdmonds(0).toJsonFile();
     return 0;
 }

@@ -186,7 +186,7 @@ template <class V> class Edge {
          * @return True if the edges are equal, false otherwise.
          */
         friend bool operator==(const Edge& e1, const Edge& e2) {
-            if(e1.isDirected() && e2.isDirected()) 
+            if(e1.isDirected() || e2.isDirected()) 
                 return e1.src == e2.src && e1.dest == e2.dest;
 
             return (e1.src == e2.src && e1.dest == e2.dest) || (e1.src == e2.dest && e1.dest == e2.src);
