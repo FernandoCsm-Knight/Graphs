@@ -18,15 +18,22 @@
 #define GRAPH_HPP
 
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
+#include <cmath>
 
-#include "ArrayList.hpp"
-#include "Map.hpp"
-#include "Queue.hpp"
-#include "Set.hpp"
+#include "datastructs/ArrayList.hpp"
+#include "datastructs/Map.hpp"
+#include "datastructs/Queue.hpp"
+#include "datastructs/Stack.hpp"
+#include "datastructs/Set.hpp"
+#include "datastructs/PriorityQueue.hpp"
+#include "datastructs/IndexedPriorityQueue.hpp"
+#include "datastructs/UnionFind.hpp"
 
 #include "helpers/Edge.hpp"
 #include "helpers/Pair.hpp"
+#include "helpers/Path.hpp"
 #include "helpers/Vertex.hpp"
 
 /**
@@ -36,11 +43,34 @@
  */
 template <class V> class Graph {
     private:
-        Map<Vertex<V>, Set<Vertex<V>>> adj; ///< The adjacency list of the graph.
-        Map<Vertex<V>, Set<Edge<V>>> edges; ///< The edge list of the graph.
+        Map<V, Set<V>> adj; ///< The adjacency list of the graph.
+        Set<Edge<V>> edges; ///< The edge list of the graph.
         bool isDig = false; ///< Indicates whether the graph is directed.
 
+        Path<V> parentsToPath(V* parents, double* distances, V dest) const {
+            ArrayList<V> vertices = adj.keys();
+            int indexDest = vertices.indexOf(dest, true);
+            if(distances[indexDest] == std::numeric_limits<double>::infinity()) 
+                return Path<V>(distances[indexDest]);
+
+            Path<V> path;
+            int index = indexDest;
+            V tmp = parents[index];
+            while(vertices[index] != tmp) {
+                path.addParent(vertices[index]);
+                index = vertices.indexOf(tmp, true);
+                tmp = parents[index];
+            }
+
+            path.addParent(vertices[index]);
+            path.setWeight(distances[indexDest]);
+            return path;
+        }
+
     public:
+
+        // Constructors & Destructor
+
         Graph() {}
 
         Graph(bool isDirected): isDig(isDirected) {}
@@ -56,6 +86,8 @@ template <class V> class Graph {
 
         ~Graph() {}
 
+        // Operators
+
         Graph<V>& operator=(const Graph<V>& other) {
             if (this != &other) {
                 adj = other.adj;
@@ -66,43 +98,387 @@ template <class V> class Graph {
             return *this;
         }
 
-        void addVertex(const V& vertex) {
-            this->addVertex(Vertex<V>(vertex));
-        }
+        // Inline Methods
 
-        void addVertex(const Vertex<V>& vertex) {
-            if(!adj.contains(vertex)) {
-                adj.put(vertex, Set<Vertex<V>>());
-                edges.put(vertex, Set<Edge<V>>());
+        inline bool contains(const V& vertex) const { return adj.contains(vertex); }
+        inline bool contains(const Edge<V>& edge) const { return edges.contains(edge); }
+        inline bool contains(const V& src, const V& dest) const { return edges.contains(Edge<V>(src, dest, isDig)); }
+
+        inline bool isEmpty() const { return adj.isEmpty(); }
+        inline bool isDigraph() const { return isDig; }
+        inline int size() const { return adj.size(); }
+        inline int sizeEdges() const { return edges.size(); }
+
+        inline Set<V> getVertices() const { return adj.keys().toSet(); }
+        inline Set<V> getNeighbors(const V& vertex) const { return adj.get(vertex); }
+        inline Set<Edge<V>> getEdges() const { return edges; }
+        inline Map<V, Set<V>> adjacencyList() const { return adj; }
+
+        // Other Methods
+
+        bool isRegular() const {
+            ArrayList<Pair<int, int>> list = this->degreeList();
+
+            bool value = true;
+            if(!isDig) {
+                for(int i = 0; i < list.size() && value; i++) 
+                    value = list[i].first() == list[0].first();
+            } else {
+                for(int i = 0; i < list.size() && value; i++)
+                    value = list[i].first() == list[0].first() && list[i].second() == list[0].second();
             }
+            
+            return value;
         }
 
-        void removeVertex(const V& vertex) {
-            this->removeVertex(Vertex<V>(vertex));
+        bool isComplete() const {
+            ArrayList<Pair<int, int>> list = this->degreeList();
+
+            bool value = true;
+            if(!isDig) {
+                for(int i = 0; i < list.size() && value; i++) 
+                    value = list[i].first() == list.size() - 1;
+            } else {
+                for(int i = 0; i < list.size() && value; i++)
+                    value = list[i].first() == list.size() - 1 && list[i].second() == list.size() - 1;
+            }
+
+            return value;
         }
 
-        void removeVertex(const Vertex<V>& vertex) {
-            if(adj.contains(vertex)) {
-                Set<Vertex<V>> vertices = adj[vertex];
+        bool isBipartite() const {
+            bool color[this->size()];
+            bool visited[this->size()];
+            bool value = true;
 
-                adj.remove(vertex);
-                edges.remove(vertex);
+            for(int i = 0; i < this->size(); i++) {
+                color[i] = false;
+                visited[i] = false;
+            }
 
-                if(!isDig) {
-                    for(int i = 0; i < vertices.size(); i++) {
-                        adj[vertices[i]].pop(vertex);
-                        edges[vertices[i]].pop(Edge<V>(vertex, vertices[i]));
+            Stack<V> stack;
+            ArrayList<V> vertices = adj.keys();
+
+            for(int i = 0; i < this->size() && value; i++) {
+                if(!visited[i]) {
+                    stack.push(vertices[i]);
+
+                    while(!stack.isEmpty() && value) {
+                        V u = stack.pop();
+                        int indexU = vertices.indexOf(u, true);
+
+                        visited[indexU] = true;
+                        for(V v : adj.get(u)) {
+                            int indexV = vertices.indexOf(v, true);
+
+                            if(!visited[indexV]) {
+                                color[indexV] = !color[indexU];
+                                stack.push(v);
+                            } else if(color[indexV] == color[indexU]) {
+                                value = false;
+                            }
+                        }
                     }
-                } else {
-                    ArrayList<Vertex<V>> keys = adj.keys();
+                } 
+            }
+            
+            return value;
+        }
 
-                    for(int i = 0; i < keys.size(); i++) {
-                        adj[keys[i]].pop(vertex);
-                        edges[keys[i]].pop(Edge<V>(vertex, keys[i]));
-                        edges[keys[i]].pop(Edge<V>(keys[i], vertex));
+        bool isTree() const {
+            UnionFind uf(this->size());
+            ArrayList<V> vertices = adj.keys();
+
+            for(Edge<V> e : edges) 
+                uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+
+            return uf.numberOfComponents() == 1 && edges.size() == this->size() - 1;
+        }
+
+        bool isForest() const {
+            UnionFind uf(this->size());
+            ArrayList<V> vertices = adj.keys();
+
+            for(Edge<V> e : edges) 
+                uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+
+            return edges.size() == this->size() - uf.numberOfComponents();
+        }
+
+        bool isEulerian() const {
+            ArrayList<Pair<int, int>> list = degreeList();
+
+            if(isDig) {
+                bool value = true;
+                int j = 0, k = 0;
+                for(int i = 0; i < list.size() && value; i++) {
+                    value = list[i].first() - list[i].second() <= 1 || list[i].second() - list[i].first() <= 1;
+                    
+                    if(value) {
+                        if(list[i].first() - list[i].second() == 1) j++;
+                        if(list[i].second() - list[i].first() == 1) k++;
+                    }
+                }
+
+                return value && ((j == 1 && k == 1) || (j == 0 && k == 0));
+            }
+
+            int j = 0;
+            for(int i = 0; i < list.size(); i++) 
+                if(list[i].first() % 2 != 0) j++;
+
+            return j == 2 || j == 0;
+        }
+
+        Pair<int, int> degree(const V& vertex) const {
+            if(!isDig) return Pair<int, int>(adj.get(vertex).size());
+
+            int in = 0, out = 0;
+            for(int i = 0; i < edges.size(); i++) {
+                if(edges.get(i).getDestination() == vertex) in++;
+                if(edges.get(i).getSource() == vertex) out++;
+            }
+
+            return Pair<int, int>(in, out);
+        }
+
+        ArrayList<Pair<int, int>> degreeList() const {
+            ArrayList<V> vertices = adj.keys();
+            ArrayList<Pair<int, int>> list;
+
+            for(int i = 0; i < vertices.size(); i++) 
+                list.add(this->degree(vertices[i]));
+
+            return list;
+        }
+
+        int connectedComponents() const {
+            if(!isDig) {
+                UnionFind uf(this->size());
+                ArrayList<V> vertices = adj.keys();
+
+                for(Edge<V> e : edges) 
+                    uf.unify(vertices.indexOf(e.getSource(), true), vertices.indexOf(e.getDestination(), true));
+                
+                return uf.numberOfComponents();
+            }
+
+            return -1;
+        }
+
+        ArrayList<ArrayList<V>> stronglyConnectedComponents() const {
+            if(!isDig) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
+
+            ArrayList<V> vertices = adj.keys();
+        
+            int id = 0;
+            int ids[vertices.size()];
+            int lowLink[vertices.size()];
+            bool onStack[vertices.size()];
+            Stack<V> stack;
+            Stack<V> dfsStack;
+            ArrayList<ArrayList<V>> components;
+
+            for(int i = 0; i < vertices.size(); i++) {
+                ids[i] = -1;
+                lowLink[i] = -1;
+                onStack[i] = false;
+            }
+
+            for(int i = 0; i < vertices.size(); i++) {
+                if(ids[i] == -1) {
+                    dfsStack.push(vertices[i]);
+                    stack.push(vertices[i]);
+                    ids[i] = id;
+                    lowLink[i] = id;
+                    onStack[i] = true;
+                    id++;
+
+                    while(!dfsStack.isEmpty()) {
+                        V u = dfsStack.peek();
+                        int indexU = vertices.indexOf(u, true);
+                        bool done = true;
+
+                        for(V w : adj.get(u)) {
+                            int indexW = vertices.indexOf(w, true);
+
+                            if(ids[indexW] == -1) {
+                                dfsStack.push(w);
+                                stack.push(w);
+                                ids[indexW] = id;
+                                lowLink[indexW] = id;
+                                onStack[indexW] = true;
+                                id++;
+                                done = false;
+                                break;
+                            } else if(onStack[indexW]) {
+                                lowLink[indexU] = std::min(lowLink[indexW], lowLink[indexU]);
+                            }
+                        }
+
+                        if(done) {
+                            dfsStack.pop();
+                            if(lowLink[indexU] == ids[indexU]) {
+                                ArrayList<V> list;
+                                V w;
+                                do {
+                                    w = stack.pop();
+                                    onStack[vertices.indexOf(w, true)] = false;
+                                    list.add(w);
+                                } while(w != u);
+                                components.add(list);
+                            }
+                        }
                     }
                 }
             }
+
+            return components;
+        }
+
+        Pair<ArrayList<Edge<V>&>, Edge<V>&> getIncomingEdges(const V& vertex) {
+            ArrayList<Edge<V>&> list;
+            Edge<V>& minEdge;
+            bool first = true;
+
+            for(int i = 0; i < edges.size(); i++)  {
+                if(edges[i].getDestination() == vertex) {
+                    if(first) {
+                        minEdge = edges[i];
+                        first = false;
+                    }
+
+                    list.add(edges[i]);
+                    if(edges[i].getWeight() < minEdge.getWeight()) 
+                        minEdge = edges[i];
+                }
+            }
+
+            return Pair<ArrayList<Edge<V>&>, Edge<V>&>(list, minEdge);
+        }
+
+        Graph<V> chuLiuEdmonds(const V& root) const {
+            Graph<V> response(true);
+            ArrayList<V> vertices = adj.keys();
+
+            for(V u : vertices) {
+                if(u != root) {
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = this->getIncomingEdges(u);
+                    response.addEdge(minEdge.second());
+                }
+            }
+
+            ArrayList<ArrayList<V>> components = response.stronglyConnectedComponents();
+            
+            bool hasNoCycles = true;
+            for(ArrayList<V> list : components) 
+                if(list.size() > 1) hasNoCycles = false;
+
+            if(hasNoCycles) {
+                std::cout << "Entrou!" << std::endl;
+                return response;
+            }
+
+            Graph<V> tmp(*this);
+            tmp.contractCycles(components, root);
+
+            vertices = tmp.adj.keys();
+            for(V u : vertices) {
+                if(u != root) {
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = tmp.getIncomingEdges(u);
+                    response.addEdge(minEdge.second());
+                }
+            }
+
+            std::cout << "Não entrou!" << std::endl;
+            return response;
+        }
+
+        bool contractCycles(ArrayList<ArrayList<V>> components = ArrayList<ArrayList<V>>(), const V& root = V()) {
+            if(components.isEmpty()) 
+                components = this->stronglyConnectedComponents();
+            
+            bool hasNoCycles = true;
+            for(ArrayList<V> list : components) 
+                if(list.size() > 1) hasNoCycles = false;
+
+            if(hasNoCycles) return false;
+
+            for(ArrayList<V> list : components) {
+                if(list.size() > 1) {
+                    V u = (list.contains(root)) ? root : list[0];
+                    Pair<ArrayList<Edge<V>&>, Edge<V>&> pair = this->getIncomingEdges(u);
+
+                    for(Edge<V>& edge : pair.fisrt()) 
+                        edge.setWeight(edge.getWeight() - pair.second().getWeight());
+
+                    for(int i = 1; i < list.size(); i++) {
+                        V v = list[i];
+                        pair = this->getIncomingEdges(v);
+
+                        for(Edge<V>& edge : pair.first()) {
+                            edge.setWeight(edge.getWeight() - pair.second().getWeight());
+                            if(!list.contains(edge.getSource()))
+                                edge.setDestination(u);
+                        }
+                    }
+
+                    for(int i = 1; i < list.size(); i++) 
+                        this->removeVertex(list[i]);
+                }
+            }
+
+            return  true;
+        }
+
+        void transpose() {
+            if(isDig) {
+                Map<V, Set<V>> tmp(adj);
+                ArrayList<V> vertices = adj.keys();
+                for(int i = 0; i < vertices.size(); i++) {
+                    V u = vertices[i];
+                    Set<V> set = tmp.get(u);
+                    
+                    for(V v : set) {
+                        this->removeEdge(u, v);
+                        this->addEdge(v, u);
+                    }
+                }
+            }
+        }
+
+        void addVertex(const V& vertex) {
+            if(!adj.contains(vertex)) 
+                adj.put(vertex, Set<V>());
+        }
+
+        void removeVertex(const V& vertex) {
+            if(adj.contains(vertex)) {
+                Set<V> vertices = adj[vertex];
+                adj.remove(vertex);
+
+                if(!isDig) {
+                    for(int i = 0; i < vertices.size(); i++) 
+                        adj[vertices[i]].pop(vertex);
+                } else {
+                    ArrayList<V> keys = adj.keys();
+
+                    for(int i = 0; i < keys.size(); i++) 
+                        adj[keys[i]].pop(vertex);
+                }
+            }
+        }
+
+        bool changeWeight(const V& src, const V& dest, double weight) {
+            return this->changeWeight(Edge<V>(src, dest, isDig, weight));
+        }
+
+        bool changeWeight(const Edge<V>& edge) {
+            int idx = edges.search(edge);
+            if(idx != -1 && edges[idx].getWeight() != edge.getWeight()) 
+                    edges[idx] = edge;
+            
+            return idx != -1;
         }
 
         void addEdge(const V& src, const V& dest, double weight = 0.0) {
@@ -114,12 +490,9 @@ template <class V> class Graph {
             this->addVertex(edge.getDestination());
 
             adj[edge.getSource()].add(edge.getDestination());
-            edges[edge.getSource()].add(edge);
+            edges.add(edge);
 
-            if(!isDig) {
-                adj[edge.getDestination()].add(edge.getSource());
-                edges[edge.getDestination()].add(edge);
-            }
+            if(!isDig) adj[edge.getDestination()].add(edge.getSource());
         }
 
         void removeEdge(const V& src, const V& dest) {
@@ -127,23 +500,309 @@ template <class V> class Graph {
         }
 
         void removeEdge(const Edge<V>& edge) {
-            if(adj.contains(edge.getSource())) {
+            if(edges.contains(edge)) {
                 adj[edge.getSource()].pop(edge.getDestination());
-                edges[edge.getSource()].pop(edge);
+                edges.pop(edge);
 
-                if(!isDig) {
-                    adj[edge.getDestination()].pop(edge.getSource());
-                    edges[edge.getDestination()].pop(edge);
-                }
+                if(!isDig) adj[edge.getDestination()].pop(edge.getSource());
             }
         }
 
+        int distance(const V& src, const V& dest) const {
+            if(!adj.contains(src) || !adj.contains(dest)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            if(src == dest) return 0;
+
+            ArrayList<V> vertices = adj.keys();
+            PriorityQueue<Pair<int, V>> queue;
+            bool visited[this->size()];
+
+            for(int i = 0; i < this->size(); i++) 
+                visited[i] = false;
+
+            Pair<int, V> pair(0, src);
+            queue.push(pair);
+            while(!queue.isEmpty() && pair.second() != dest) {
+                pair = queue.poll();
+                visited[vertices.indexOf(pair.second(), true)] = true;
+                
+                for(V u : adj.get(pair.second())) {
+                    if(!visited[vertices.indexOf(u, true)]) 
+                        queue.push(Pair<int, V>(pair.first() + 1, u));
+                }
+            }
+
+            return (pair.second() == dest) ? pair.first() : -1;
+        }
+
+        Map<V, Path<V>> shortestPath(const V& vertex) const {
+            if(!adj.contains(vertex)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            bool hasNegativeWeight = false;
+            for(int i = 0; i < edges.size() && !hasNegativeWeight; i++) 
+                hasNegativeWeight = edges.get(i).getWeight() < 0;
+
+            ArrayList<V> vertices = adj.keys();
+            double distances[this->size()];
+            V parents[this->size()];
+
+            for(int i = 0; i < this->size(); i++) {
+                distances[i] = std::numeric_limits<double>::infinity();
+                parents[i] = vertices[i];
+            }
+
+            distances[vertices.indexOf(vertex, true)] = 0;
+
+            if(hasNegativeWeight) {
+                for(int i = 0; i < this->size() - 1; i++) {
+                    for(Edge<V> edge : edges) {
+                        int indexSrc = vertices.indexOf(edge.getSource(), true);
+                        int indexDest = vertices.indexOf(edge.getDestination(), true);
+
+                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
+                            distances[indexDest] = distances[indexSrc] + edge.getWeight();
+                            parents[indexDest] = edge.getSource();
+                        }
+                    }
+                }
+
+                for(int i = 0; i < this->size() - 1; i++) {
+                    for(Edge<V> edge : edges) {
+                        int indexSrc = vertices.indexOf(edge.getSource(), true);
+                        int indexDest = vertices.indexOf(edge.getDestination(), true);
+
+                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
+                            distances[indexDest] = -std::numeric_limits<double>::infinity();
+                            parents[indexDest] = edge.getSource();
+                        }
+                    }
+                }
+            } else {
+                PriorityQueue<Pair<double, V>> queue;
+                bool visited[this->size()];
+
+                for(int i = 0; i < this->size(); i++) 
+                    visited[i] = false;
+
+                queue.push(Pair<double, V>(0.0, vertex));
+                while(!queue.isEmpty()) {
+                    V w = queue.poll().second();
+                    int indexW = vertices.indexOf(w, true);
+
+                    visited[indexW] = true;
+                    for(V u : adj.get(w)) {
+                        int indexU = vertices.indexOf(u, true);
+
+                        if(!visited[indexU]) {
+                            if(distances[indexU] < distances[indexW] + weight(w, u)) {
+                                distances[indexU] = distances[indexU];
+                            } else {
+                                distances[indexU] = distances[indexW] + weight(w, u);
+                                parents[indexU] = w;
+                            }
+
+                            queue.push(Pair<double, V>(distances[indexU], u));
+                        }
+                    }
+                }
+            }
+
+            Map<V, Path<V>> map;
+            for(int i = 0; i < vertices.size(); i++) 
+                map.put(vertices[i], parentsToPath(parents, distances, vertices[i]));
+            
+            return map;
+        }
+
+        Path<V> shortestPath(const V& src, const V& dest) const {
+            if(!adj.contains(src) || !adj.contains(dest)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            return this->shortestPath(src)[dest];
+        }
+
+        double weight(const V& src, const V& dest) const {
+            int idx = edges.search(Edge<V>(src, dest, isDig));
+            
+            if(idx == -1 && !isDig) 
+                idx = edges.search(Edge<V>(dest, src, isDig));
+
+            if(idx == -1) {
+                if(src == dest) return 0.0;
+                else throw std::invalid_argument("The given edge does not exist in the graph.");
+            } 
+
+            return edges.get(idx).getWeight();
+        }
+
+        Path<Edge<V>> minimumSpanningTree() const {
+            IndexedPriorityQueue<Pair<double, Edge<V>>> queue(this->size());
+            ArrayList<V> vertices = adj.keys();
+            bool visited[this->size()];
+            Path<Edge<V>> path;
+
+            for(int i = 0; i < this->size(); i++) 
+                visited[i] = false;
+
+            queue.insert(0, Pair<double, Edge<V>>(0.0, Edge<V>(vertices[0], vertices[0], isDig)));
+
+            while(!queue.isEmpty()) {
+                visited[queue.minKey()] = true;
+                Pair<double, Edge<V>> pair = queue.poll();
+                path.add(pair.second(), pair.first());
+
+                V u = pair.second().getDestination();
+                for(V w : adj.get(u)) {
+                    int indexW = vertices.indexOf(w, true);
+                
+                    if(!visited[indexW]) {
+                        double weight = this->weight(u, w);
+
+                        if(queue.contains(indexW)) 
+                            queue.decrease(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, isDig, weight)));
+                        else 
+                            queue.insert(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, isDig, weight)));
+                    }
+                }
+            }
+
+            return path;
+        }
+
+        ArrayList<V> clasp(const V& vertex, const char& type = '+') const {
+            if(!adj.contains(vertex))
+                throw std::invalid_argument("The given vertex does not exist in the graph.");
+
+            if(type != '+' && type != '-') 
+                throw std::invalid_argument("The given type is not valid.");
+
+            ArrayList<V> clp;
+
+            if(type == '+') {
+                Stack<V> stack;
+                stack.push(vertex);
+
+                ArrayList<V> vertices = adj.keys();
+                bool visited[this->size()];
+
+                for(int i = 0; i < this->size(); i++) 
+                    visited[i] = false;
+
+                while(!stack.isEmpty()) {
+                    V u = stack.pop();
+                    clp.add(u);
+
+                    visited[vertices.indexOf(u, true)] = true;
+                    for(V v : adj.get(u)) {
+                        if(!visited[vertices.indexOf(v, true)]) 
+                            stack.push(v);
+                    }
+                }
+            } else {
+                Graph<V> tmp(*this);
+                tmp.transpose();
+                clp = tmp.clasp(vertex);
+            }
+
+            return clp;
+        }
+
+        Map<V, Pair<int, int>> times(const V& vertex) const {
+            ArrayList<V> vertices = adj.keys();
+            Map<V, Pair<int, int>> map;
+
+            Stack<V> stack;
+            stack.push(vertex);
+
+            int time = 0;
+            while(!stack.isEmpty()) {
+                V v = stack.peek();
+                
+                if(!map.contains(v))
+                    map.put(v, Pair<int, int>(++time));
+
+                bool done = true;
+                for(V u : adj.get(v)) {
+                    if(!map.contains(u)) {
+                        stack.push(u);
+                        done = false;
+                    }
+                }
+
+                if(done) {
+                    stack.pop();
+                    map[v].second() = ++time;
+                }
+            }
+
+            return map;
+        }
+
+        void clear() {
+            adj.clear();
+            edges.clear();
+        }
+
+        // Output Methods
+
+        std::string describe() const {
+            std::string s = "";
+
+            s.append((isDig ? "Directed" : "Undirected"));
+            s.append((connectedComponents() == 1 ? " Connected" : " Disconnected"));
+            s.append((isRegular() ? " Regular" : ""));
+            s.append((isComplete() ? " Complete" : ""));
+            s.append((isBipartite() ? " Bipartite" : ""));
+            s.append((isEulerian() ? " Eulerian" : ""));
+            s.append((isTree() ? " Tree" : ""));
+            s.append((isForest() ? " Forest" : ""));
+
+            s.append(" Graph");
+            return s;
+        }
+
+        void toJsonFile() const {
+            std::ofstream file;
+            file.open("graph.json");
+
+            if(file.is_open()) {
+                file << "[" << std::endl;
+                file << "{" << std::endl << "\"Graph\": {" << std::endl;
+                file << "\t\"isDirected\": " << (isDig ? "true" : "false") << "," << std::endl;
+                file << "\t\"Adjacency List\": {" << std::endl;
+
+                ArrayList<V> vertices = adj.keys();
+
+                for(int i = 0; i < vertices.size(); i++) {
+                    Set<V> set = adj.get(vertices[i]);
+                    V* list = set.toVector();
+
+                    file << "\t\t\"" << vertices[i] << "\": [";
+                    
+                    for(int i = 0; i < set.size(); i++) 
+                        file << "\"" << list[i] << "\"" << ((i < set.size() - 1) ? ", " : "");
+
+                    file << "]" << ((i < vertices.size() - 1) ? "," : "") << std::endl;
+                }
+
+                file << "\t}," << std::endl << "\t\"Edges\": {" << std::endl;
+
+                Edge<V>* list = edges.toVector();
+                for(int i = 0; i < edges.size(); i++) 
+                    file << "\t\t\"" << list[i].getSource() << " -> " << list[i].getDestination() << "\": " << list[i].getWeight() << ((i < edges.size() - 1) ? "," : "") << std::endl;
+                
+                file << "\t}" << std::endl << "}" << std::endl << "}" << std::endl << "]" << std::endl;
+            }
+
+            file.close();
+        }
+
         friend std::ostream& operator<<(std::ostream& strm, const Graph<V>& graph) {
-            strm << graph.edges;
-            return strm << graph.adj;
+            strm << graph.edges << std::endl;
+            return strm << graph.adj << std::endl;
         }
 };
-
-
 
 #endif

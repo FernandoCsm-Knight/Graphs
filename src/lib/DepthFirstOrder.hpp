@@ -4,11 +4,12 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "ArrayList.hpp"
 #include "Graph.hpp"
 #include "MatrixGraph.hpp"
-#include "Queue.hpp"
-#include "Stack.hpp"
+
+#include "datastructs/ArrayList.hpp"
+#include "datastructs/Queue.hpp"
+#include "datastructs/Stack.hpp"
 
 #include "helpers/Vertex.hpp"
 #include "helpers/Edge.hpp"

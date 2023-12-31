@@ -1,32 +1,27 @@
 #include <iostream>
+#include <cstdlib> 
 
-#include "lib/ArrayList.hpp"
-#include "lib/helpers/Pair.hpp"
-#include "lib/LinkedList.hpp"
-#include "lib/Map.hpp"
-#include "lib/RBTree.hpp"
-#include "lib/helpers/Edge.hpp"
-#include "lib/helpers/Vertex.hpp"
-#include "lib/MatrixGraph.hpp"
-#include "lib/Set.hpp"
-#include "lib/Tarjan.hpp"
-#include "lib/MinHeap.hpp"
-#include "lib/PriorityQueue.hpp"
+#include "lib/datastructs/IndexedPriorityQueue.hpp"
+#include "lib/helpers/Path.hpp"
+#include "lib/Graph.hpp"
+
+#include "lib/test/TestBuilder.hpp"
 
 using std::string;
 
 int main() {
-    Graph<string> graph;
+    Graph<int> graph(true);
 
-    graph.addEdge("A", "B");
-    graph.addEdge("A", "C");
-    graph.addEdge("A", "D");
-    graph.addEdge("B", "C");
-    graph.addEdge("C", "D");
-    graph.addEdge("D", "E");
-    graph.addEdge("E", "F");
+    graph.addEdge(0, 1, 1.0);
+    graph.addEdge(0, 2, 20.0);
+    graph.addEdge(0, 3, 30.0);
+    graph.addEdge(1, 2, 2.0);
+    graph.addEdge(2, 1, 2.0);
+    graph.addEdge(1, 3, 3.0);
+    graph.addEdge(3, 1, 3.0);
+    graph.addEdge(2, 3, 1.0);
+    graph.addEdge(3, 2, 3.0);
 
-    graph.removeVertex("A");
-
-    std::cout << graph << std::endl;
+    graph.chuLiuEdmonds(0).toJsonFile();
+    return 0;
 }

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <stdexcept>
 
-
 /**
  * @brief A template class implementing a min heap data structure.
  * 
@@ -60,13 +59,19 @@ template <class T> class MinHeap {
         }
 
         int indexOf(const T& element) const {
-            int i = -1;
+            int idx = 0;
 
-            for(int j = 0; i == -1 && j < this->length; j++)
-                if(this->array[j] == element)
-                    i = j;
-                
-            return i;
+            while(idx < length) {
+                if(array[idx] == element) 
+                    return idx; 
+
+                if(element < array[idx]) 
+                    idx = left(idx);
+                else 
+                    idx = right(idx);
+            }
+
+            return -1;
         }
 
         void swap(int i, int j) {
@@ -127,7 +132,7 @@ template <class T> class MinHeap {
         inline bool isEmpty() const { return this->length == 0; }
 
         void add(const T& element) {
-            if(this->isDynamic && this->length == this->cap)
+            if(this->isDynamic && this->length >= this->cap * 0.75)
                 this->resize();
 
             this->array[this->length++] = element;

@@ -24,7 +24,9 @@
 
 #include <iostream>
 #include <stdexcept>
-#include "helpers/Node.hpp"
+
+#include "../helpers/Node.hpp"
+#include "iterators/LinkedListIterator.hpp"
 
 /**
  * @brief Templated doubly-linked list class.
@@ -38,7 +40,7 @@ template <class T> class LinkedList {
     private:
         Node<T>* head;          ///< Pointer to the first node (head) of the linked list.
         Node<T>* tail;          ///< Pointer to the last node (tail) of the linked list.
-        unsigned int length;    ///< The number of elements in the linked list.
+        int length;    ///< The number of elements in the linked list.
 
         // Helper functions for sorting
 
@@ -157,13 +159,31 @@ template <class T> class LinkedList {
         }
 
         /**
+         * @brief Returns the first element in the linked list.
+         * 
+         * @return T& A reference to the first element's value.
+         */
+        T& front() const {
+            return this->head->value;
+        }
+
+        /**
+         * @brief Returns the last element in the linked list.
+         * 
+         * @return T& A reference to the last element's value.
+         */
+        T& back() const {
+            return this->tail->value;
+        }
+
+        /**
          * @brief Add an element to the end of the linked list.
          * 
          * @param value The value to be added.
          */
         void add(const T& value) {
             Node<T>* node = new Node<T>(value);
-            if (this->head == nullptr) {
+            if(this->head == nullptr) {
                 this->head = node;
                 this->tail = node;
             } else {
@@ -181,19 +201,19 @@ template <class T> class LinkedList {
          * @param value The value to be added.
          * @throw std::invalid_argument If the index is out of range.
          */
-        void add(unsigned int index, const T& value) {
-            if (index > this->length) 
+        void add(int index, const T& value) {
+            if(index > this->length) 
                 throw std::invalid_argument("The index must be greater than 0 and less than the length of the list");
 
             if (index == this->length) {
                 this->add(value);
-            } else if (index == 0) {
+            } else if(index == 0) {
                 this->unshift(value);
             } else {
                 Node<T>* node = new Node<T>(value);
 
                 Node<T>* prev = this->head;
-                for (unsigned int i = 0; i < index - 1; i++) 
+                for(int i = 0; i < index - 1; i++) 
                     prev = prev->next;
                 
                 node->next = prev->next;
@@ -212,7 +232,7 @@ template <class T> class LinkedList {
          */
         void addInOrder(const T& element) {
             Node<T>* node = new Node<T>(element);
-            if (this->head == nullptr) {
+            if(this->head == nullptr) {
                 this->head = node;
                 this->tail = node;
             } else {
@@ -246,7 +266,7 @@ template <class T> class LinkedList {
          */
         void unshift(const T& value) {
             Node<T>* node = new Node<T>(value);
-            if (this->head == nullptr) {
+            if(this->head == nullptr) {
                 this->head = node;
                 this->tail = node;
             } else {
@@ -264,7 +284,7 @@ template <class T> class LinkedList {
          * @throw std::out_of_range If the list is empty.
          */
         T pop() {
-            if (this->length == 0) 
+            if(this->length == 0) 
                 throw std::out_of_range("Index out of range");
 
             T value = this->tail->value;
@@ -283,17 +303,17 @@ template <class T> class LinkedList {
          * @return T The value of the removed element.
          * @throw std::out_of_range If the index is out of range.
          */
-        T pop(unsigned int index) {
-            if (index >= this->length) 
+        T pop(int index) {
+            if(index >= this->length) 
                 throw std::out_of_range("Index out of range");
 
-            if (index == this->length - 1) {
+            if(index == this->length - 1) {
                 return this->pop();
-            } else if (index == 0) {
+            } else if(index == 0) {
                 return this->shift();
             } else {
                 Node<T>* node = this->head;
-                for (unsigned int i = 0; i < index; i++) 
+                for(int i = 0; i < index; i++) 
                     node = node->next;
                 
                 T value = node->value;
@@ -312,17 +332,17 @@ template <class T> class LinkedList {
          * @param check If true, search for the value from the beginning; otherwise, search from the end.
          * @throw std::invalid_argument If the value is not found in the list.
          */
-        void pop(const T& value, bool check) {
+        bool pop(const T& value, bool check) {
             int index = -1;
-            if (check) 
+            if(check) 
                 index = this->indexOf(value);
             else 
                 index = this->lastIndexOf(value);
 
-            if (index == -1)
-                throw std::invalid_argument("The value is not in the list");
+            if(index == -1)
+                return false;
             
-            this->pop(index);
+            return this->pop(index) == value;
         }
 
         /**
@@ -332,7 +352,7 @@ template <class T> class LinkedList {
          * @throw std::out_of_range If the list is empty.
          */
         T shift() {
-            if (this->length == 0) 
+            if(this->length == 0) 
                 throw std::out_of_range("Index out of range");
 
             T value = this->head->value;
@@ -340,7 +360,7 @@ template <class T> class LinkedList {
             this->head = this->head->next;
             delete node;
 
-            if (this->head == nullptr) 
+            if(this->head == nullptr) 
                 this->tail = nullptr;
             else 
                 this->head->prev = nullptr;
@@ -359,7 +379,7 @@ template <class T> class LinkedList {
             Node<T>* node = this->head;
 
             for(int i = 0; node != nullptr; i++) {
-                if (node->value == value) 
+                if(node->value == value) 
                     return i;
                 node = node->next;
             }
@@ -377,7 +397,7 @@ template <class T> class LinkedList {
             Node<T>* node = this->tail;
 
             for(int i = this->length - 1; node != nullptr; i--) {
-                if (node->value == value) 
+                if(node->value == value) 
                     return i;
                 node = node->prev;
             }
@@ -388,17 +408,25 @@ template <class T> class LinkedList {
         /**
          * @brief Get the element at the specified index without removing it.
          * 
-         * @param index The index of the element to retrieve.
+         * @param idx The index of the element to retrieve.
          * @return T The value of the element at the given index.
          * @throw std::out_of_range If the index is out of range.
          */
-        T get(unsigned int index) const {
-            if (index < 0 || index >= this->length) 
+        T get(int idx) const {
+            if(idx < 0 || idx >= this->length) 
                 throw std::out_of_range("Index out of range");
 
-            Node<T>* node = this->head;
-            for (unsigned int i = 0; i < index; i++) 
-                node = node->next;
+            Node<T>* node;
+            
+            if(idx <= this->length / 2) {
+                node = this->head;
+                for(int i = 0; i < idx; i++) 
+                    node = node->next;
+            } else {
+                node = this->tail;
+                for(int i = this->length - 1; i > idx; i--) 
+                    node = node->prev;
+            }
             
             return node->value;
         }
@@ -420,13 +448,21 @@ template <class T> class LinkedList {
          * @return T& Reference to the element's value at the given index.
          * @throw std::out_of_range If the index is out of range.
          */
-        T& operator[](unsigned int idx) const {
-            if (idx >= this->length) 
+        T& operator[](int idx) const {
+            if(idx >= this->length) 
                 throw std::out_of_range("Index out of range");
 
-            Node<T>* node = this->head;
-            for (unsigned int i = 0; i < idx; i++) 
-                node = node->next;
+            Node<T>* node;
+
+            if(idx <= this->length / 2) {
+                node = this->head;
+                for(int i = 0; i < idx; i++) 
+                    node = node->next;
+            } else {
+                node = this->tail;
+                for(int i = this->length - 1; i > idx; i--) 
+                    node = node->prev;
+            }
             
             return node->value;
         }
@@ -438,12 +474,12 @@ template <class T> class LinkedList {
          * @param value The new value for the element.
          * @throw std::out_of_range If the index is out of range.
          */
-        void set(unsigned int index, const T& value) {
-            if (index < 0 || index >= this->length) 
+        void set(int index, const T& value) {
+            if(index < 0 || index >= this->length) 
                 throw std::out_of_range("Index out of range");
 
             Node<T>* node = this->head;
-            for (unsigned int i = 0; i < index; i++) 
+            for(int i = 0; i < index; i++) 
                 node = node->next;
             
             node->value = value;
@@ -486,6 +522,24 @@ template <class T> class LinkedList {
             this->head = nullptr;
             this->tail = nullptr;
             this->length = 0;
+        }
+
+        /**
+         * @brief Returns a iterator to the first element of the linked list.
+         * 
+         * @return LinkedListIterator<T> An iterator to the first element of the linked list.
+         */
+        LinkedListIterator<T> begin() {
+            return LinkedListIterator<T>(head);
+        }
+
+        /**
+         * @brief Returns a iterator to the element following the last element of the linked list.
+         * 
+         * @return LinkedListIterator<T> An iterator to the element following the last element of the linked list.
+         */
+        LinkedListIterator<T> end() {
+            return LinkedListIterator<T>(nullptr);
         }
 
         // Friend functions for overloading stream insertion and equality operators.

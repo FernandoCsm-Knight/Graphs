@@ -24,6 +24,12 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <functional>
+
+#include "iterators/ArrayIterator.hpp"
+
+template <class T> class ArrayList;
+#include "Set.hpp"
 
 /**
  * @brief Templated dynamic array list class.
@@ -35,10 +41,11 @@
  */
 template <class T> class ArrayList {
     private:
-        T* array;                   ///< Pointer to the dynamic array storing elements.
-        int length;                 ///< The current number of elements in the array list.
-        int maxLength;              ///< The maximum capacity of the dynamic array.
-        bool dynamic;               ///< Flag indicating if the array can dynamically resize.
+        T* array; ///< Pointer to the dynamic array storing elements.
+        int length; ///< The current number of elements in the array list.
+        int maxLength; ///< The maximum capacity of the dynamic array.
+        bool dynamic; ///< Flag indicating if the array can dynamically resize.
+        std::function<int(const T& a, const T& b)> comparator; ///< The comparison function used for sorting.
 
         // Helper function for resizing the array when necessary.
 
@@ -59,16 +66,29 @@ template <class T> class ArrayList {
 
         int binarySearch(const T& element) const {
             int l = 0, r = this->length - 1, m = 0;
-            
-            while(l <= r) {
-                m = l + (r - l) / 2;
 
-                if(this->array[m] == element) 
-                    return m;
-                else if(this->array[m] < element)
-                    l = m + 1;
-                else 
-                    r = m - 1;
+            if(comparator) {
+                while(l <= r) {
+                    m = l + (r - l) / 2;
+
+                    if(comparator(this->array[m], element) == 0) 
+                        return m;
+                    else if(comparator(this->array[m], element) < 0)
+                        l = m + 1;
+                    else 
+                        r = m - 1;
+                }
+            } else {
+                while(l <= r) {
+                    m = l + (r - l) / 2;
+
+                    if(this->array[m] == element) 
+                        return m;
+                    else if(this->array[m] < element)
+                        l = m + 1;
+                    else 
+                        r = m - 1;
+                }
             }
 
             return -1;
@@ -85,14 +105,15 @@ template <class T> class ArrayList {
         }
 
         int partition(int first, int last) {
-            bool isString = typeid(T) == typeid(std::string);
             T pivot = this->array[(first + last) / 2];
 
             int i = first, j = last;
 
             while(i <= j) {
-
-                if(isString) {
+                if(comparator) {
+                    while(comparator(this->array[i], pivot) < 0) i++;
+                    while(comparator(this->array[j], pivot) > 0) j--;
+                } else if constexpr (std::is_same_v<T, std::string>) {
                     while(((std::string)this->array[i]).compare((std::string)pivot) < 0) i++;
                     while(((std::string)this->array[j]).compare((std::string)pivot) > 0) j--;
                 } else {
@@ -151,8 +172,8 @@ template <class T> class ArrayList {
          * 
          * @param arr The array to be copied.
          */
-        ArrayList(T* arr) {
-            this->length = sizeof(arr) / sizeof(arr[0]);
+        ArrayList(const T arr[], int length) {
+            this->length = length;
             this->maxLength = this->length;
             this->array = new T[this->maxLength];
             
@@ -171,6 +192,17 @@ template <class T> class ArrayList {
             this->array = new T[arrayList.maxLength];
             for(int i = 0; i < arrayList.length; i++) 
                 this->array[i] = arrayList.array[i];
+        }
+
+        /**
+         * @brief Construct a new Array List object with a custom comparator.
+         * 
+         * @param comparator The comparison function to be used for sorting.
+         */
+        ArrayList(std::function<int(const T& a, const T& b)> comparator): length(0), maxLength(2), dynamic(true), comparator(comparator) {
+            this->array = new T[this->maxLength];
+            for(int i = 0; i < this->maxLength; i++) 
+                this->array[i] = T();
         }
 
         /**
@@ -251,15 +283,20 @@ template <class T> class ArrayList {
         }
 
         /**
-         * @brief Add an element to the array list in ascending order.
+         * @brief Add an element to the array list in non-decreasing order.
          * 
          * @param element The element to be added.
          */
         void addInOrder(const T& element) {
             int index = 0;
 
-            while(index < this->length && this->array[index] < element)
-                index++;
+            if(comparator) {
+                while(index < this->length && comparator(this->array[index], element) < 0)
+                    index++;
+            } else {
+                while(index < this->length && this->array[index] < element)
+                    index++;
+            }
 
             this->add(index, element);
         }
@@ -315,7 +352,7 @@ template <class T> class ArrayList {
          * @param check If true, search for the element from the beginning; otherwise, search from the end.
          * @throw std::invalid_argument If the element is not found in the list.
          */
-        T pop(const T& element, bool check) {
+        T pop(const T& element, bool check = true) {
             int index = -1;
             if(check)
                 index = this->indexOf(element);
@@ -356,7 +393,7 @@ template <class T> class ArrayList {
          * @throw std::out_of_range If the index is out of range.
          */
         T& operator[](std::size_t idx) {
-            if (idx >= (std::size_t)this->length) 
+            if(idx >= (std::size_t)this->length) 
                 throw std::out_of_range("Index out of range");
             return this->array[idx];
         }
@@ -373,6 +410,25 @@ template <class T> class ArrayList {
                 throw std::out_of_range("Index out of range");
                 
             this->array[index] = element;
+        }
+
+        /**
+         * @brief Resize the array list to the given capacity.
+         * 
+         * @param capacity The new capacity of the array list.
+         */
+        void resize(int capacity) {
+            if (capacity <= this->length) 
+                throw std::invalid_argument("The capacity must be greater than 1");
+
+            T* newArray = new T[capacity];
+            for(int i = 0; i < this->length; i++) 
+                newArray[i] = this->array[i];
+            
+            delete[] this->array;
+            this->array = newArray;
+            this->maxLength = capacity;
+            this->dynamic = false;
         }
 
         /**
@@ -419,6 +475,10 @@ template <class T> class ArrayList {
             
             if(binary) {
                 idx = this->binarySearch(element);
+            } else if(comparator) {
+                for (int i = 0; idx == -1 && i < this->length; i++) 
+                    if (comparator(this->array[i], element) == 0) 
+                        idx = i;
             } else {
                 for (int i = 0; idx == -1 && i < this->length; i++) 
                     if (this->array[i] == element) 
@@ -440,6 +500,10 @@ template <class T> class ArrayList {
 
             if(binary) {
                 idx = this->binarySearch(element);
+            } else if(comparator) {
+                for (int i = this->length - 1; idx == -1 && i >= 0; i--)
+                    if (comparator(this->array[i], element) == 0) 
+                        idx = i;
             } else {
                 for (int i = this->length - 1; idx == -1 && i >= 0; i--)
                     if (this->array[i] == element) 
@@ -454,6 +518,50 @@ template <class T> class ArrayList {
          */
         void sort() {
             this->quickSort(0, (long int)(this->length - 1));
+        }
+
+        /**
+         * @brief Returns a copy of the array list as a built-in array.
+         * 
+         * @return T* A copy of the array list as a built-in array.
+         */
+        T* toVector() const {
+            T* arr = new T[this->length];
+            for(int i = 0; i < this->length; i++) 
+                arr[i] = this->array[i];
+            
+            return arr;
+        }
+
+        /**
+         * @brief Returns a copy of the array list as a set.
+         * 
+         * @return Set<T> A copy of the array list as a set.
+         */
+        Set<T> toSet() const {
+            Set<T> set;
+            for(int i = 0; i < this->length; i++) 
+                set.add(this->array[i]);
+            
+            return set;
+        }
+
+        /**
+         * @brief Returns a Iterator object pointing to the first element in the array list.
+         * 
+         * @return Iterator<T> An iterator pointing to the first element in the array list.
+         */
+        ArrayIterator<T> begin() const {
+            return ArrayIterator<T>(this->array);
+        }
+
+        /**
+         * @brief Returns a Iterator object pointing to the element after the last element in the array list.
+         * 
+         * @return Iterator<T> An iterator pointing to the element after the last element in the array list.
+         */
+        ArrayIterator<T> end() const {
+            return ArrayIterator<T>(this->array + this->length);
         }
 
         // Friend functions for overloading stream insertion and equality operators.
@@ -471,25 +579,45 @@ template <class T> class ArrayList {
         friend bool operator==(const ArrayList<T>& arrayList1, const ArrayList<T>& arrayList2) {
             bool eq = arrayList1.length == arrayList2.length;
     
-            for (int i = 0; i < arrayList1.length && eq; i++) {
-                if constexpr (std::is_same_v<T, std::string>) {
-                    eq = arrayList1.array[i].compare(arrayList2.array[i]) == 0;
-                } else {
-                    eq = arrayList1.array[i] == arrayList2.array[i];
+            if(arrayList1.comparator) {
+                for (int i = 0; i < arrayList1.length && eq; i++) {
+                    eq = arrayList1.comparator(arrayList1.array[i], arrayList2.array[i]) == 0;
+                }
+            } else if(arrayList2.comparator) {
+                for (int i = 0; i < arrayList1.length && eq; i++) {
+                    eq = arrayList2.comparator(arrayList1.array[i], arrayList2.array[i]) == 0;
+                }
+            } else {
+                for (int i = 0; i < arrayList1.length && eq; i++) {
+                    if constexpr (std::is_same_v<T, std::string>) {
+                        eq = arrayList1.array[i].compare(arrayList2.array[i]) == 0;
+                    } else {
+                        eq = arrayList1.array[i] == arrayList2.array[i];
+                    }
                 }
             }
-            
+
             return eq;
         }
 
         friend bool operator<(const ArrayList<T>& arrayList1, const ArrayList<T>& arrayList2) {
             bool lt = arrayList1.length < arrayList2.length;
     
-            for (int i = 0; i < arrayList1.length && lt; i++) {
-                if constexpr (std::is_same_v<T, std::string>) {
-                    lt = arrayList1.array[i].compare(arrayList2.array[i]) < 0;
-                } else {
-                    lt = arrayList1.array[i] < arrayList2.array[i];
+            if(arrayList1.comparator) {
+                for (int i = 0; i < arrayList1.length && lt; i++) {
+                    lt = arrayList1.comparator(arrayList1.array[i], arrayList2.array[i]) < 0;
+                }
+            } else if(arrayList2.comparator) {
+                for (int i = 0; i < arrayList1.length && lt; i++) {
+                    lt = arrayList2.comparator(arrayList1.array[i], arrayList2.array[i]) < 0;
+                }
+            } else {
+                for (int i = 0; i < arrayList1.length && lt; i++) {
+                    if constexpr (std::is_same_v<T, std::string>) {
+                        lt = arrayList1.array[i].compare(arrayList2.array[i]) < 0;
+                    } else {
+                        lt = arrayList1.array[i] < arrayList2.array[i];
+                    }
                 }
             }
             

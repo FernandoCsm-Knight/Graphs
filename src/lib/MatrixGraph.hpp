@@ -22,12 +22,13 @@ template <class V> class MatrixGraph;
 #include <iostream>
 #include <stdexcept>
 
-#include "ArrayList.hpp"
+#include "datastructs/ArrayList.hpp"
+#include "datastructs/PriorityQueue.hpp"
+#include "datastructs/Map.hpp"
+#include "datastructs/Queue.hpp"
+#include "datastructs/Stack.hpp"
+
 #include "DepthFirstOrder.hpp"
-#include "PriorityQueue.hpp"
-#include "Map.hpp"
-#include "Queue.hpp"
-#include "Stack.hpp"
 #include "Tarjan.hpp"
 
 #include "helpers/Edge.hpp"
@@ -483,7 +484,7 @@ template <class V> class MatrixGraph {
             int idx = this->vertices.indexOf(Vertex<V>(ver), true);
             for(int i = 0; i < this->length; i++) {
                 if(this->matrix[idx][i] == 1) {
-                    Edge<V> edge(Vertex<V>(ver), this->vertices.get(i));
+                    Edge<V> edge(ver, this->vertices.get(i).getLabel());
                     edge.setDirect(this->isDir);
                     list.addInOrder(edge);
                 }
@@ -769,23 +770,6 @@ template <class V> class MatrixGraph {
          */
         DepthFirstOrder<V> depthFirstOrder() const {
             return DepthFirstOrder<V>(*this);
-        }
-
-
-        ArrayList<Vertex<V>> base() {
-            ArrayList<Vertex<V>> list;
-
-            ArrayList<MatrixGraph<V>> components = this->tarjan();
-            for(int i = 0 ; i < components.size(); i++) {
-
-                ArrayList<Vertex<V>> tmp = components[i].getVertices();
-                for(int j = 0; j < tmp.size(); j++) {
-
-                }
-            }
-
-
-            return list;
         }
 
         int dist(const V& src, const V& dest) {
