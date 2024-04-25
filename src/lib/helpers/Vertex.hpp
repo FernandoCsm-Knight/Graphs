@@ -160,7 +160,6 @@ template <class T> class Vertex {
         inline friend bool operator>(const Vertex<T>& v1, const Vertex<T>& v2) { return v2 < v1; }
         inline friend bool operator<=(const Vertex<T>& v1, const Vertex<T>& v2) { return !(v1 > v2); }
         inline friend bool operator>=(const Vertex<T>& v1, const Vertex<T>& v2) { return !(v1 < v2); }
-
 };
 
 #endif

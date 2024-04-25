@@ -21,7 +21,7 @@ template <typename T> class HashSet {
             this->length = 0;
             table.resize(capacity);
 
-            for(int i = 0; i < capacity; i++) 
+            for(int i = 0; i < capacity; ++i) 
                 table.add(LinkedList<T>());
         }
 

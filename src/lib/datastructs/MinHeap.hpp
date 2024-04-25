@@ -108,7 +108,7 @@ template <class T> class MinHeap {
             for(int i = 0; i < this->length; i++) 
                 this->array[i] = arr[i];
 
-            for(int i = (this->length - 2) / 2; i >= 0; i--) 
+            for(int i = (this->length - 2) / 2; i >= 0; --i) 
                 this->heapify(i);
         }
 

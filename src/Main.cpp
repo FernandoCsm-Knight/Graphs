@@ -2,26 +2,30 @@
 #include <cstdlib> 
 
 #include "lib/datastructs/IndexedPriorityQueue.hpp"
+#include "lib/helpers/Arithmatic.hpp"
+#include "lib/helpers/StopWatch.hpp"
 #include "lib/helpers/Path.hpp"
 #include "lib/Graph.hpp"
-
-#include "lib/test/TestBuilder.hpp"
 
 using std::string;
 
 int main() {
-    Graph<int> graph(true);
+    Graph<int> graph;
 
-    graph.addEdge(0, 1, 1.0);
-    graph.addEdge(0, 2, 20.0);
-    graph.addEdge(0, 3, 30.0);
-    graph.addEdge(1, 2, 2.0);
-    graph.addEdge(2, 1, 2.0);
-    graph.addEdge(1, 3, 3.0);
-    graph.addEdge(3, 1, 3.0);
-    graph.addEdge(2, 3, 1.0);
-    graph.addEdge(3, 2, 3.0);
+    graph.draw();
 
-    graph.chuLiuEdmonds(0).toJsonFile();
-    return 0;
+    std::cout << graph.describe() << std::endl;
+
+    std::cout << graph.connectedComponents() << std::endl;
+
+    // std::cout << graph.cycles(CycleDetectionType::WALK, false).size() << std::endl;
+
+    // Arithmetic ar;
+
+    // unsigned long long sum = 0;
+    // for(int i = 3; i <= 5; ++i) {
+    //     sum += ar.arrangements(5, i);
+    // }
+
+    // std::cout << "Sum: " << sum << std::endl;
 }

@@ -265,7 +265,7 @@ template <class T> class RBTree {
          * @param node The current node being processed.
          */
         void clear(Node* node) {
-            if(node != nullptr) {
+            if(node) {
                 clear(node->left);
                 clear(node->right);
                 delete node;
@@ -313,7 +313,7 @@ template <class T> class RBTree {
             ArrayList<T> list2 = tree2.toArray();
 
             bool eq = list1.size() == list2.size();
-            for(int i = 0; i < list1.size() && eq; i++)
+            for(int i = 0; i < list1.size() && eq; ++i)
                 eq = list1[i] == list2[i];
             return eq;
         }
@@ -335,7 +335,7 @@ template <class T> class RBTree {
         RBTree(const RBTree& tree) {
             this->root = nullptr;
             ArrayList<T> list = tree.toArray();
-            for(int i = 0; i < list.size(); i++)
+            for(int i = 0; i < list.size(); ++i)
                 this->add(list[i]);
         }
 
@@ -356,7 +356,7 @@ template <class T> class RBTree {
             clear(this->root);
             this->root = nullptr;
             ArrayList<T> list = tree.toArray();
-            for(int i = 0; i < list.size(); i++)
+            for(int i = 0; i < list.size(); ++i)
                 this->add(list[i]);
             return *this;
         }
@@ -419,15 +419,18 @@ template <class T> class RBTree {
                 return;
 
             Node* x = nullptr;
+            Node* xParent = nullptr;
             Node* y = node;
             bool isRed = y->isRed;
 
             if(node->left == nullptr) {
                 x = node->right;
                 transplant(node, node->right);
+                xParent = node->parent;
             } else if(node->right == nullptr) {
                 x = node->left;
                 transplant(node, node->left);
+                xParent = node->parent;
             } else {
                 y = minimum(node->right);
                 isRed = y->isRed;
@@ -435,10 +438,12 @@ template <class T> class RBTree {
                 if(y->parent == node) {
                     if(x != nullptr)
                         x->parent = y;
+                    xParent = y;
                 } else {
                     transplant(y, y->right);
                     y->right = node->right;
                     y->right->parent = y;
+                    xParent = y->parent;
                 }
 
                 transplant(node, y);
@@ -447,8 +452,7 @@ template <class T> class RBTree {
                 y->isRed = node->isRed;
             }
 
-            if(!isRed)
-                balanceDeletion(x, y->parent);
+            if(!isRed) balanceDeletion(x, xParent);
             
             delete node;
         }
@@ -528,8 +532,8 @@ template <class T> class RBTree {
          */
         void clear() {
             clear(this->root);
+            this->root = nullptr;
         }
-
 };
 
 #endif

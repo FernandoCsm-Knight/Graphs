@@ -213,7 +213,7 @@ template <class T> class LinkedList {
                 Node<T>* node = new Node<T>(value);
 
                 Node<T>* prev = this->head;
-                for(int i = 0; i < index - 1; i++) 
+                for(int i = 0; i < index - 1; ++i) 
                     prev = prev->next;
                 
                 node->next = prev->next;
@@ -313,7 +313,7 @@ template <class T> class LinkedList {
                 return this->shift();
             } else {
                 Node<T>* node = this->head;
-                for(int i = 0; i < index; i++) 
+                for(int i = 0; i < index; ++i) 
                     node = node->next;
                 
                 T value = node->value;
@@ -378,7 +378,7 @@ template <class T> class LinkedList {
         int indexOf(const T& value) const {
             Node<T>* node = this->head;
 
-            for(int i = 0; node != nullptr; i++) {
+            for(int i = 0; node != nullptr; ++i) {
                 if(node->value == value) 
                     return i;
                 node = node->next;
@@ -396,7 +396,7 @@ template <class T> class LinkedList {
         int lastIndexOf(const T& value) const {
             Node<T>* node = this->tail;
 
-            for(int i = this->length - 1; node != nullptr; i--) {
+            for(int i = this->length - 1; node != nullptr; --i) {
                 if(node->value == value) 
                     return i;
                 node = node->prev;
@@ -420,11 +420,11 @@ template <class T> class LinkedList {
             
             if(idx <= this->length / 2) {
                 node = this->head;
-                for(int i = 0; i < idx; i++) 
+                for(int i = 0; i < idx; ++i) 
                     node = node->next;
             } else {
                 node = this->tail;
-                for(int i = this->length - 1; i > idx; i--) 
+                for(int i = this->length - 1; i > idx; --i) 
                     node = node->prev;
             }
             
@@ -456,11 +456,11 @@ template <class T> class LinkedList {
 
             if(idx <= this->length / 2) {
                 node = this->head;
-                for(int i = 0; i < idx; i++) 
+                for(int i = 0; i < idx; ++i) 
                     node = node->next;
             } else {
                 node = this->tail;
-                for(int i = this->length - 1; i > idx; i--) 
+                for(int i = this->length - 1; i > idx; --i) 
                     node = node->prev;
             }
             
@@ -479,7 +479,7 @@ template <class T> class LinkedList {
                 throw std::out_of_range("Index out of range");
 
             Node<T>* node = this->head;
-            for(int i = 0; i < index; i++) 
+            for(int i = 0; i < index; ++i) 
                 node = node->next;
             
             node->value = value;

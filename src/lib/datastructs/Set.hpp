@@ -41,9 +41,9 @@ template <class T> class Set {
          */
         void resize() {
             this->capacity *= 2;
-            T* temp = new T[this->capacity];
+            T* temp = new T[this->capacity]();
 
-            for(int i = 0; i < this->length; i++) 
+            for(int i = 0; i < this->length; ++i) 
                 temp[i] = this->arr[i];
 
             delete[] this->arr;
@@ -52,36 +52,15 @@ template <class T> class Set {
 
     public:
         /**
-         * @brief Perform binary search to find the index of an element.
-         * 
-         * @param element The element to search for.
-         * @return The index of the element if found, otherwise -1.
-         */
-        int search(const T& element) const {
-            int l = 0, r = this->length - 1;
-
-            while(l <= r) {
-                int m = l + (r - l) / 2;
-                
-                if(this->arr[m] == element) 
-                    return m;
-                else if(this->arr[m] < element) 
-                    l = m + 1;
-                else 
-                    r = m - 1;
-            }
-
-            return -1;
-        }
-
-        /**
          * @brief Constructor to create an instance of the Set class.
          * 
          * @param capacity Initial capacity of the set.
          * @param isDynamic Whether dynamic resizing is enabled.
          */
-        Set(int capacity = 10, bool isDynamic = true): capacity(capacity), isDynamic(isDynamic) {
-            this->arr = new T[this->capacity];
+        Set(int capacity = 10, bool isDynamic = true) {
+            this->capacity = capacity;
+            this->isDynamic = isDynamic;
+            this->arr = new T[this->capacity]();
             this->length = 0;
         }
 
@@ -90,11 +69,13 @@ template <class T> class Set {
          * 
          * @param set The set to be copied.
          */
-        Set(const Set<T>& set): capacity(set.capacity), isDynamic(set.isDynamic) {
-            this->arr = new T[this->capacity];
+        Set(const Set<T>& set) {
+            this->capacity = set.capacity;
+            this->isDynamic = set.isDynamic;
+            this->arr = new T[this->capacity]();
             this->length = set.length;
 
-            for(int i = 0; i < this->length; i++) 
+            for(int i = 0; i < this->length; ++i) 
                 this->arr[i] = set.arr[i];
         }
 
@@ -116,7 +97,7 @@ template <class T> class Set {
                 delete[] this->arr;
                 this->arr = new T[this->capacity];
 
-                for(int i = 0; i < this->length; i++) 
+                for(int i = 0; i < this->length; ++i) 
                     this->arr[i] = set.arr[i];
             }
 
@@ -170,6 +151,29 @@ template <class T> class Set {
         }
 
         /**
+         * @brief Perform binary search to find the index of an element.
+         * 
+         * @param element The element to search for.
+         * @return The index of the element if found, otherwise -1.
+         */
+        int search(const T& element) const {
+            int l = 0, r = this->length - 1;
+
+            while(l <= r) {
+                int m = l + (r - l) / 2;
+                
+                if(this->arr[m] == element) 
+                    return m;
+                else if(this->arr[m] < element) 
+                    l = m + 1;
+                else 
+                    r = m - 1;
+            }
+
+            return -1;
+        }
+
+        /**
          * @brief Add an element to the set while maintaining sorted order.
          * 
          * @param value The element to be added to the set.
@@ -181,10 +185,10 @@ template <class T> class Set {
             if(this->length < this->capacity && !this->contains(value)) {
                 int index = 0;
 
-                while(this->arr[index] < value && index < this->length) 
-                    index++;
+                while(index < this->length && this->arr[index] < value) 
+                    ++index;
 
-                for(int i = this->length; i > index; i--) 
+                for(int i = this->length; i > index; --i) 
                     this->arr[i] = this->arr[i - 1];
 
                 this->arr[index] = value;
@@ -203,7 +207,7 @@ template <class T> class Set {
             int index = this->search(value);
 
             if(index != -1) {
-                for(int i = index; i < this->length - 1; i++) 
+                for(int i = index; i < this->length - 1; ++i) 
                     this->arr[i] = this->arr[i + 1];
 
                 this->length--;
@@ -220,7 +224,7 @@ template <class T> class Set {
         ArrayList<T> toArray() const {
             ArrayList<T> array = ArrayList<T>(this->length);
 
-            for(int i = 0; i < this->length; i++)
+            for(int i = 0; i < this->length; ++i)
                 array.add(this->arr[i]);
 
             return array;
@@ -234,7 +238,7 @@ template <class T> class Set {
         T* toVector() const {
             T* vector = new T[this->length];
 
-            for(int i = 0; i < this->length; i++) 
+            for(int i = 0; i < this->length; ++i) 
                 vector[i] = this->arr[i];
 
             return vector;
@@ -294,7 +298,7 @@ template <class T> class Set {
          */
         friend std::ostream& operator<<(std::ostream& out, const Set<T>& set) {
             out << "{";
-            for(int i = 0; i < set.length; i++) {
+            for(int i = 0; i < set.length; ++i) {
                 out << set.arr[i];
                 if(i < set.length - 1) 
                     out << ", ";
@@ -313,7 +317,7 @@ template <class T> class Set {
         friend bool operator==(const Set<T>& set1, const Set<T>& set2) {
             bool eq = set1.length == set2.length;
 
-            for(int i = 0; eq && i < set1.length; i++) 
+            for(int i = 0; eq && i < set1.length; ++i) 
                 eq = set1.arr[i] == set2.arr[i];
 
             return eq;
@@ -337,10 +341,10 @@ template <class T> class Set {
         Set<T> operator+(const Set<T>& set) const {
             Set<T> result = Set<T>(this->capacity + set.capacity, this->isDynamic || set.isDynamic);
 
-            for(int i = 0; i < this->length; i++) 
+            for(int i = 0; i < this->length; ++i) 
                 result.add(this->arr[i]);
 
-            for(int i = 0; i < set.length; i++) 
+            for(int i = 0; i < set.length; ++i) 
                 result.add(set.arr[i]);
 
             return result;
@@ -355,12 +359,39 @@ template <class T> class Set {
         Set<T> operator-(const Set<T>& set) const {
             Set<T> result = Set<T>(this->capacity, this->isDynamic);
 
-            for(int i = 0; i < this->length; i++) 
+            for(int i = 0; i < this->length; ++i) 
                 if(!set.contains(this->arr[i])) 
                     result.add(this->arr[i]);
 
             return result;
         }
+
+        /**
+         * @brief Overloaded intersection operator to compute the intersection of two sets.
+         * 
+         * @param set The set to compute the intersection with.
+         * @return Set<T> The resulting set after computing the intersection.
+         */
+        Set<T> operator&(const Set<T>& set) const {
+            Set<T> result = Set<T>(this->capacity, this->isDynamic);
+
+            for(int i = 0; i < this->length; ++i) 
+                if(set.contains(this->arr[i])) 
+                    result.add(this->arr[i]);
+
+            return result;
+        }
+
+        /**
+         * @brief Overloaded union operator to compute the union of two sets.
+         * 
+         * @param set The set to compute the union with.
+         * @return Set<T> The resulting set after computing the union.
+         */
+        Set<T> operator|(const Set<T>& set) const {
+            return *this + set;
+        }
+
 
         /**
          * @brief Overloaded cartesian product operator to compute the cartesian product of two sets.
@@ -372,8 +403,8 @@ template <class T> class Set {
         template <class U> Set<Pair<T, U>> operator*(const Set<U>& set) const {
             Set<Pair<T, U>> result = Set<Pair<T, U>>(this->capacity * set.capacity, this->isDynamic || set.isDynamic);
 
-            for(int i = 0; i < this->length; i++) 
-                for(int j = 0; j < set.length; j++) 
+            for(int i = 0; i < this->length; ++i) 
+                for(int j = 0; j < set.length; ++j) 
                     result.add(Pair<T, U>(this->arr[i], set.arr[j], true));
 
             return result;

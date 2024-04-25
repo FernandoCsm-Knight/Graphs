@@ -17,6 +17,9 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "ArrayList.hpp"
+#include "Map.hpp"
+
 /**
  * UnionFind is a data structure that keeps track of a set of 
  * elements partitioned into a number of disjoint subsets.
@@ -25,42 +28,35 @@
  * - Find: Determine which subset a particular element is in.
  * - Union: Join two subsets into a single subset.
  */
-class UnionFind {
+template<typename T> class UnionFind {
     private:
-        int* ids; ///< The array of ids.
-        int* sizes; ///< The array of sizes.
+        Map<T, T> ids; ///< The array of ids.
+        Map<T, int> sizes; ///< The array of sizes.
         int count; ///< The number of components.
         int length; ///< The length of the arrays.
     
     public:
         /**
-         * @brief Construct a new Union Find object
+         * @brief Construct a new Union Find object.
          * 
-         * @param size The size of the UnionFind.
+         * @param list The list with the elements to perform union find.
          */
-        UnionFind(int size) {
-            if(size <= 0)
-                throw std::invalid_argument("Size must be greater than 0");
-
-            ids = new int[size];
-            sizes = new int[size];
+        UnionFind(const ArrayList<T>& list) {
             count = 0;
-            length = size;
+            length = list.size();
 
-            for(int i = 0; i < size; i++) {
-                ids[i] = i;
-                sizes[i] = 1;
+            for(int i = 0; i < list.size(); ++i) {
+                T el = list.get(i);
+                ids[el] = el;
+                sizes[el] = 1;
                 count++;
             }
         }
 
         /**
-         * @brief Destroy the Union Find object deleting the arrays.
+         * @brief Destroy the Union Find.
          */
-        ~UnionFind() {
-            delete[] ids;
-            delete[] sizes;
-        }
+        ~UnionFind() {}
 
         /**
          * @brief Find the root of the element p.
@@ -68,20 +64,20 @@ class UnionFind {
          *        It runs in amortized constant time.
          * 
          * @param p The element to find the root.
-         * @return int The root of the element p.
+         * @return T The root of the element p.
          */
-        int find(int p) {
-            if(p < 0 || p >= length) 
-                throw std::invalid_argument("Index out of bounds");
+        T find (T p) {
+            if(!ids.contains(p))
+                throw std::invalid_argument("Element not found in the UnionFind");
 
-            int root = ids[p];
-            while(root != ids[root])
+            T root = ids[p];
+            while(root != ids[root]) 
                 root = ids[root];
 
             while(ids[p] != root) {
-                int newp = ids[p]; 
-                ids[p] = root; 
-                p = newp; 
+                T newp = ids[p];
+                ids[p] = root;
+                p = newp;
             }
 
             return root;
@@ -93,9 +89,9 @@ class UnionFind {
          * @param p The first element.
          * @param q The second element.
          */
-        void unify(int p, int q) {
-            int rootP = this->find(p);
-            int rootQ = this->find(q);
+        void unify(T p, T q) {
+            T rootP = this->find(p);
+            T rootQ = this->find(q);
 
             if(rootP != rootQ) {
                 if(sizes[rootP] < sizes[rootQ]) {
@@ -149,7 +145,7 @@ class UnionFind {
          */
         friend std::ostream& operator<<(std::ostream& os, const UnionFind& uf) {
             os << "UnionFind(" << uf.count << "): [";
-            for(int i = 0; i < uf.count; i++) {
+            for(int i = 0; i < uf.count; ++i) {
                 os << uf.ids[i];
                 if(i != uf.count - 1)
                     os << ", ";

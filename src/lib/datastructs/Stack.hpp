@@ -169,6 +169,25 @@ template <class T> class Stack {
         }
 
         /**
+         * @brief Returns the element at the specified index in the stack.
+         * 
+         * @param index The index of the element to return.
+         * @return The element at the specified index.
+         */
+        T get(int index) const {
+            if(index < 0 || index >= this->length) {
+                throw std::out_of_range("Index out of bounds");
+            }
+
+            Node<T>* temp = this->top;
+            for(int i = 0; i < index; ++i) {
+                temp = temp->next;
+            }
+
+            return temp->value;
+        }
+
+        /**
          * @brief Returns the number of elements in the stack.
          * 
          * @return The number of elements in the stack.

@@ -67,7 +67,7 @@ template <class T> class IndexedPriorityQueue {
             this->inverseMap = new int[this->cap];
             this->array = new T[this->cap];
 
-            for(int i = 0; i < this->cap; i++) {
+            for(int i = 0; i < this->cap; ++i) {
                 this->child[i] = i*this->degree + 1;
                 this->parent[i] = (i - 1)/this->degree;
                 this->positionMap[i] = -1;
@@ -205,7 +205,7 @@ template <class T> class IndexedPriorityQueue {
         }
 
         void clear() {
-            for(int i = 0; i < this->length; i++) {
+            for(int i = 0; i < this->length; ++i) {
                 this->positionMap[this->inverseMap[i]] = -1;
                 this->inverseMap[i] = -1;
                 this->array[i] = T();
@@ -216,7 +216,7 @@ template <class T> class IndexedPriorityQueue {
 
         friend std::ostream& operator<<(std::ostream& strm, const IndexedPriorityQueue<T>& queue) {
             strm << "[";
-            for(int i = 0; i < queue.length; i++) {
+            for(int i = 0; i < queue.length; ++i) {
                 strm << queue.array[queue.inverseMap[i]];
                 if(i != queue.length - 1) strm << ", ";
             }

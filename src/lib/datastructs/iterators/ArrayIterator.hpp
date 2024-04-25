@@ -12,6 +12,8 @@
 #ifndef ARRAY_ITERATOR_HPP
 #define ARRAY_ITERATOR_HPP
 
+#include <iterator>
+
 /**
  * @brief A template class implementing an iterator for an array of elements.
  *
@@ -125,6 +127,22 @@ template <class T> class ArrayIterator {
         }
 
         /**
+         * @brief Addition operator overload to increment the iterator by an offset.
+         * 
+         * @param n The value by which the iterator should be incremented.
+         * @return The iterator after incrementing.
+         */
+        ArrayIterator operator+(int n) const { return ArrayIterator(ptr + n); }
+        
+        /**
+         * @brief Subtraction operator overload to decrement the iterator by an offset.
+         * 
+         * @param n The value by which the iterator should be decremented. 
+         * @return The iterator after decrementing.
+         */
+        ArrayIterator operator-(int n) const { return ArrayIterator(ptr - n); }
+
+        /**
          * @brief Equality operator overload to compare two ArrayIterator objects.
          *
          * @param other Another ArrayIterator to compare with.
@@ -205,6 +223,37 @@ template <class T> class ArrayIterator {
             ptr -= offset;
             return *this;
         }
-};  
+
+        /**
+         * @brief Subtraction operator overload to calculate the difference between two ArrayIterator objects.
+         *
+         * @param lhs The first ArrayIterator.
+         * @param rhs The second ArrayIterator.
+         * @return The difference between the two iterators.
+         */
+        friend ptrdiff_t operator-(const ArrayIterator& lhs, const ArrayIterator& rhs) { return lhs.ptr - rhs.ptr; }
+
+        /**
+         * @brief Addition operator overload to increment the iterator by an offset.
+         *
+         * @param n The value by which the iterator should be incremented.
+         * @param iter The iterator to increment.
+         * @return The iterator after incrementing.
+         */
+        friend ArrayIterator operator+(int n, const ArrayIterator& iter) { return ArrayIterator(iter.ptr + n); }
+};
+
+/**
+ * @brief A template class implementing an iterator for an array of elements.
+ * 
+ * @tparam T The type of elements stored in the iterator.
+ */
+template<typename T> struct std::iterator_traits<ArrayIterator<T>> {
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using iterator_category = std::random_access_iterator_tag;
+};
 
 #endif
