@@ -8,54 +8,66 @@ This repository contains the implementation of some graph algorithms and data st
 
 ```bash
 .
-│
-├── graph.json
+├── bin
+│   └── Main
+├── data
+│   └── graph_0.json
+├── img
 ├── LICENSE
 ├── makefile
-├── README.md
-├── bin
-│   └── main
 ├── obj
-│   └── Main.o
-└── src
-    ├── lib
-    │   ├── datastructs
-    │   │   ├── ArrayList.hpp
-    │   │   ├── HashMap.hpp
-    │   │   ├── HashSet.hpp
-    │   │   ├── IndexedPriorityQueue.hpp
-    │   │   ├── iterators
-    │   │   │   ├── ArrayIterator.hpp
-    │   │   │   └── LinkedListIterator.hpp
-    │   │   ├── LinkedList.hpp
-    │   │   ├── Map.hpp
-    │   │   ├── MinHeap.hpp
-    │   │   ├── PriorityQueue.hpp
-    │   │   ├── Queue.hpp
-    │   │   ├── RBTree.hpp
-    │   │   ├── Set.hpp
-    │   │   ├── Stack.hpp
-    │   │   └── UnionFind.hpp
-    │   ├── DepthFirstOrder.hpp
-    │   ├── Graph.hpp
-    │   ├── helpers
-    │   │   ├── Edge.hpp
-    │   │   ├── Node.hpp
-    │   │   ├── Pair.hpp
-    │   │   ├── Path.hpp
-    │   │   └── Vertex.hpp
-    │   ├── MatrixGraph.hpp
-    │   ├── Tarjan.hpp
-    │   └── test
-    │       ├── DigraphTest.hpp
-    │       ├── GraphDijkstraTest.hpp
-    │       ├── GraphTest.hpp
-    │       ├── MinimunSpanningTreeTest.hpp
-    │       ├── TestBuilder.hpp
-    │       └── Test.hpp
-    ├── log
-    │   └── test.log
-    └── Main.cpp
+│   └── Main.o
+├── README.md
+├── src
+│   ├── lib
+│   │   ├── datastructs
+│   │   │   ├── ArrayList.hpp
+│   │   │   ├── HashMap.hpp
+│   │   │   ├── HashSet.hpp
+│   │   │   ├── IndexedPriorityQueue.hpp
+│   │   │   ├── iterators
+│   │   │   │   ├── ArrayIterator.hpp
+│   │   │   │   └── LinkedListIterator.hpp
+│   │   │   ├── LinkedList.hpp
+│   │   │   ├── Map.hpp
+│   │   │   ├── MinHeap.hpp
+│   │   │   ├── PriorityQueue.hpp
+│   │   │   ├── Queue.hpp
+│   │   │   ├── RBTree.hpp
+│   │   │   ├── Set.hpp
+│   │   │   ├── Stack.hpp
+│   │   │   └── UnionFind.hpp
+│   │   ├── Graph.hpp
+│   │   └── helpers
+│   │       ├── Arithmatic.hpp
+│   │       ├── Edge.hpp
+│   │       ├── GraphGenerator.hpp
+│   │       ├── Node.hpp
+│   │       ├── Pair.hpp
+│   │       ├── Path.hpp
+│   │       ├── StopWatch.hpp
+│   │       └── Vertex.hpp
+│   ├── Main.cpp
+│   └── scripts
+│       ├── assets
+│       │   └── graph_drawer_logo.png
+│       ├── graph_drawer.py
+│       └── graph_visualizer.py
+├── test
+│   ├── lib
+│   │   ├── CycleTest.hpp
+│   │   ├── DigraphTest.hpp
+│   │   ├── GraphDijkstraTest.hpp
+│   │   ├── GraphTest.hpp
+│   │   ├── MinimumSpanningTreeTest.hpp
+│   │   ├── TestBuilder.hpp
+│   │   └── Test.hpp
+│   ├── logs
+│   │   ├── log.txt
+│   │   ├── test.log
+│   │   └── Test.log
+│   └── Test.cpp
+└── tmp
 ```
 
 the `src` directory contains the source code of the project, the `lib` directory contains the implementation of the data structures and algorithms, and the `test` directory contains the unit tests. The `bin` directory contains the executable file and the `obj` directory contains the object files. Furthermore, the `graph.json` file contains the graph that is used in the unit tests and the `log` directory contains the log file of the unit tests. Finally, the `makefile` contains the instructions to compile the project.
@@ -114,14 +126,91 @@ The following data structures are implemented:
 
 The following algorithms are implemented:
 
-- [Depth First Order](src/lib/DepthFirstOrder.hpp)
+- [Depth First Order](src/lib/Graph.hpp)
 - [Cycle Detection](src/lib/Graph.hpp)
 - [Breadth First Search](src/lib/Graph.hpp)
 - [Depth First Search](src/lib/Graph.hpp)
 - [Dijkstra](src/lib/Graph.hpp)
 - [Bellman Ford](src/lib/Graph.hpp)
 - [Prim - MST](src/lib/Graph.hpp)
-- [Tarjan - Strongly Connected Components](src/lib/Tarjan.hpp)
+- [Tarjan - Strongly Connected Components](src/lib/Graph.hpp)
+- [Kruskal - MST](src/lib/Graph.hpp)
+- [Topological Sort](src/lib/Graph.hpp)
+- [Visitation Time](src/lib/Graph.hpp)
+
+## Dependencies
+
+This project depends on the nlohmann/json library for JSON parsing. You can find the library on GitHub: [nlohmann/json](https://github.com/nlohmann/json).
+
+### Installing the nlohmann/json library
+
+To install the nlohmann/json library, you need to run the following commands:
+
+#### Linux
+
+At ubuntu, you can install the library using the following command:
+
+```bash
+sudo apt install nlohmann-json3-dev
+```
+At Fedora, you can install the library using the following command:
+
+```bash
+sudo dnf install nlohmann-json-devel
+```
+
+At Arch Linux, you can install the library using the following command:
+
+```bash
+sudo pacman -S nlohmann-json
+```
+
+#### macOS
+
+At macOS, you can install the library using the following command:
+
+```bash
+brew install nlohmann-json
+```
+
+#### Windows
+
+At Windows, you can install the library using the following command:
+
+```bash
+vcpkg install nlohmann-json
+```
+
+This project also include some python scripts to enable visualization and some facilities.
+
+### Installing Python Libraries
+
+The following Python libraries are used in the project:
+
+- [networkx](https://networkx.org/)
+- [matplotlib](https://matplotlib.org/)
+- [numpy](https://numpy.org/)
+- [pygame](https://www.pygame.org/)
+
+To install the libraries, you need to run the following command:
+
+```bash
+pip install networkx matplotlib numpy pygame
+```
+
+If you are using the `conda` package manager, you can install the libraries using the following command:
+
+```bash
+conda install networkx matplotlib numpy pygame
+```
+
+## Graph Visualization
+
+The project contains a Python script that generates a graph visualization using the `networkx` and `matplotlib` libraries. The script reads a JSON file containing the graph and generates a visualization of the graph. The script is located in the `src/scripts` directory. You can plot the graph using the `plot()` method at a Graph object.
+
+The Graph class contains a method that generates a JSON file containing the graph. The method is called `toJSON` and is located in the `Graph.hpp` file. 
+
+Another python script allows you to draw a graph and import it to the program. To use this script, you need to run the `draw()` method at a graph object that will automatically import the drawn graph.
 
 ## References
 
