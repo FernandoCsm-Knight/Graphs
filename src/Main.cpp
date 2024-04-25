@@ -10,9 +10,9 @@
 using std::string;
 
 int main() {
-    Graph<int> graph;
+    Graph<int> graph(GraphTypes::EULERIAN, 20);
 
-    graph.draw();
+    graph.plot();
 
     std::cout << graph.describe() << std::endl;
 

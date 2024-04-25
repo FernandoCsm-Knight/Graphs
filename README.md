@@ -2,6 +2,8 @@
 
 ### Author: Fernando Campos Silva Dal Maria
 
+![Eulerian Graph Image](img/graph_visualization.png)
+
 ## Description
 
 This repository contains the implementation of some graph algorithms and data structures. The main purpose of this project is to learn about graph theory and its applications. You will find the following directory structure:
