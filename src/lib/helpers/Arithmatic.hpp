@@ -48,21 +48,24 @@ class Arithmetic {
          * @param k the number of elements to permute.
          * @return unsigned long long the number of permutations.
          */
-        unsigned long long arrangements(int n, int k) const {
-            return factorial(n) / factorial(n - k);
+        unsigned long long arrangements(int n, int k) const {            
+            unsigned long long num = 1;
+            for(int i = n - k + 1; i <= n; ++i) num *= i;
+            return num;
         }
         
         /**
          * @brief Calculates the number of combinations of a set of n elements.
          * 
          * @param n the number of Graph<int> graph(GraphTypes::COMPLETE, 9, false);
-
-Stopwatch sw("Gelements in the set.
          * @param k the number of elements to combine.
          * @return unsigned long long the number of combinations.
          */
         unsigned long long combinations(int n, int k) const {
-            return factorial(n) / (factorial(k) * factorial(n - k));
+            unsigned long long num = 1;
+            int greater = std::max(k, n - k);
+            for(int i = greater + 1; i <= n; ++i) num *= i;
+            return num / factorial(n - greater);
         }
 };
 
