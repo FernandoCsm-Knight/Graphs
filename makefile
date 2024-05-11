@@ -30,6 +30,7 @@ IMGDIR := img
 
 # Output directories
 OUTPUT_DIRS := $(OBJDIR) $(BINDIR) $(DATADIR) $(TMPDIR) $(IMGDIR)
+CLEAN_DIRS := $(OBJDIR) $(BINDIR) $(TMPDIR)
 
 # Graphviz DOT file
 DOTFILE := toPlot.dot
@@ -78,7 +79,15 @@ rerun: rebuild run
 
 # Clean the generated files
 clean:
-	$(RM) -r $(OUTPUT_DIRS)
+	rm -r $(CLEAN_DIRS)
+
+# Clean img directory
+clean_img:
+	rm -r $(IMGDIR)/*
+
+# Clean data directory
+clean_data:
+	rm -r $(DATADIR)/*
 
 # Generate Graphviz DOT file
 dot: $(EXE)

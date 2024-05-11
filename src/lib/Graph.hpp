@@ -810,6 +810,32 @@ template <class V> class Graph {
             return this->shortestPath(src)[dest];
         }
 
+        Map<V, Map<V, double>> allDistances() const {
+            ArrayList<V> vertices = this->adj.keys();
+            Map<V, Map<V, double>> distances;
+
+            for(const V& v : vertices) {
+                for(const V& u : vertices) {
+                    if(v == u) distances[v][u] = 0.0;
+                    else distances[v][u] = std::numeric_limits<double>::infinity();
+                } 
+            }
+
+            for(const Edge<V>& edge : edges) 
+                distances[edge.getSource()][edge.getDestination()] = edge.getWeight();
+
+            for(const V& w : vertices) {
+                for(const V& v : vertices) {
+                    for(const V& u : vertices) {
+                        double len = distances[v][w] + distances[w][u];
+                        if(len < distances[v][u]) distances[v][u] = len;
+                    }
+                }
+            }
+
+            return distances;
+        }
+
         double weight(const V& src, const V& dest) const {
             int idx = edges.search(Edge<V>(src, dest, directed));
             
@@ -945,60 +971,48 @@ template <class V> class Graph {
             return s;
         }
 
-        void import(const std::string& jsonFile) {
-            std::ifstream file(jsonFile);
-            if (!file.is_open()) {
-                throw std::invalid_argument("Failed to open file: " + jsonFile);
-            }
+        void import(const std::string& fileName, bool customPath = false) {
+            std::ifstream file(customPath ? fileName : ("data/" + fileName));
+            if (!file.is_open()) 
+                throw std::invalid_argument("Failed to open file: " + fileName);
 
             std::string jsonString;
             std::string line;
-            while (std::getline(file, line)) {
+            while (std::getline(file, line)) 
                 jsonString += line;
-            }
 
             nlohmann::json data = nlohmann::json::parse(jsonString);
 
             adj.clear();
             edges.clear();
-
             directed = data["directed"];
 
-            for (const auto& link : data["links"]) {
+            for (const auto& link : data["edges"]) {
                 V source = link["source"].get<V>();
                 V target = link["target"].get<V>();
-                addEdge(source, target);
+                double weight = link["weight"].get<double>();
+                addEdge(source, target, weight);
             }
         }
 
-        void exportJSON(const std::string& fileName) const {
+        void exportJSON(const std::string& fileName, bool customPath = false) const {
             nlohmann::json data;
             data["directed"] = directed;
             data["multigraph"] = false;
-            data["graph"] = nlohmann::json::object();
-
-            nlohmann::json nodes = nlohmann::json::array();
-            ArrayList<V> vertices = adj.keys();
-            for (int i = 0; i < vertices.size(); ++i) {
-                nlohmann::json node;
-                node["pos"] = nlohmann::json::array({0, 0});
-                node["id"] = i;
-                nodes.push_back(node);
-            }
-            data["nodes"] = nodes;
 
             nlohmann::json links = nlohmann::json::array();
             for (const Edge<V>& edge : edges) {
                 nlohmann::json link;
-                link["source"] = vertices.indexOf(edge.getSource(), true);
-                link["target"] = vertices.indexOf(edge.getDestination(), true);
+                link["source"] = edge.getSource();
+                link["target"] = edge.getDestination();
+                link["weight"] = edge.getWeight();
                 links.push_back(link);
             }
 
-            data["links"] = links;
+            data["edges"] = links;
             std::string json =  data.dump(4); 
 
-            std::ofstream file("data/" + fileName);
+            std::ofstream file(customPath ? fileName : ("data/" + fileName));
             if (!file.is_open()) {
                 std::cout << "Failed to open file: " << fileName << std::endl;
                 return;
@@ -1028,54 +1042,19 @@ template <class V> class Graph {
             file.close();
         }
 
-        void plot(std::string pngFileName = "graph_visualization.png", bool showInAWindow = false) const {
-            if (!pngFileName.ends_with(".png")) {
+        void plot(std::string pngFileName = "", bool showInAWindow = false) const {
+            if (!pngFileName.empty() && !pngFileName.ends_with(".png")) {
                 pngFileName = pngFileName.substr(0, pngFileName.find_last_of('.')) + ".png";
             }
-
+            
             std::string filename = "tmp/toPlot.json";
-            std::ofstream file(filename);
-            if (!file.is_open()) {
-                std::cout << "Failed to open file: " << filename << std::endl;
-                return;
-            }
-
-            file << "{\n";
-            file << "  \"directed\": " << (directed ? "true" : "false") << ",\n";
-            file << "  \"nodes\": [\n";
-
-            ArrayList<V> vertices = adj.keys();
-            for (int i = 0; i < vertices.size(); ++i) {
-                file << "    { \"id\": \"" << vertices[i] << "\" }";
-                if (i < vertices.size() - 1) {
-                    file << ",";
-                }
-                file << "\n";
-            }
-
-            file << "  ],\n";
-            file << "  \"edges\": [\n";
-
-            int edgeCount = 0;
-            for (const Edge<V>& edge : edges) {
-                file << "    { \"source\": \"" << edge.getSource() << "\", \"target\": \"" << edge.getDestination() << "\" }";
-                if (edgeCount < edges.size() - 1) {
-                    file << ",";
-                }
-                file << "\n";
-                ++edgeCount;
-            }
-
-            file << "  ]\n";
-            file << "}\n";
-
-            file.close();
+            exportJSON(filename, true);
             std::cout << "Graph exported to " << filename << std::endl;
 
             std::string command = "python src/scripts/graph_visualizer.py ";
             command += filename;
-            command += " " + pngFileName + " ";
-            command += (showInAWindow ? "true" : "false");
+            command += (showInAWindow ? " true " : " false ");
+            command += pngFileName;
             int result = std::system(command.c_str());
             if (result == 0) {
                 std::cout << "Graph image generated successfully." << std::endl;

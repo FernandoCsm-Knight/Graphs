@@ -132,6 +132,8 @@ The following algorithms are implemented:
 - [Cycle Detection](src/lib/Graph.hpp)
 - [Breadth First Search](src/lib/Graph.hpp)
 - [Depth First Search](src/lib/Graph.hpp)
+- [Union Find Connected Components](src/lib/Graph.hpp)
+- [Floyd Warshall](src/lib/Graph.hpp)
 - [Dijkstra](src/lib/Graph.hpp)
 - [Bellman Ford](src/lib/Graph.hpp)
 - [Prim - MST](src/lib/Graph.hpp)
