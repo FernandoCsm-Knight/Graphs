@@ -445,14 +445,14 @@ template <class V> class Graph {
 
         Path<V> depthFirstSearch(const V& vertex) const {
             DepthFirstSearch<V> *dfs = new DepthFirstSearch<V>(*this);
-            Path<V> path = dfs->depthFirstSearch(vertex);
+            Path<V> path = dfs->dfs(vertex);
             delete dfs;
             return path;
         }
 
         Path<V> breathFirstSearch(const V& vertex) const {
             BreathFirstSearch<V> *bfs = new BreathFirstSearch<V>(*this);
-            Path<V> path = bfs->breathFirstSearch(vertex);
+            Path<V> path = bfs->bfs(vertex);
             delete bfs;
             return path;
         }

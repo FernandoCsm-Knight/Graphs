@@ -16,7 +16,7 @@ template <class V> class BreathFirstSearch {
     public:
         explicit BreathFirstSearch(const Graph<V>& graph): adj(graph.adjacencyList()) {}
 
-        Path<V> bfs(const V* vertex) const {
+        Path<V> bfs(const V& vertex) const {
             if(!adj.contains(vertex))
                 throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
 

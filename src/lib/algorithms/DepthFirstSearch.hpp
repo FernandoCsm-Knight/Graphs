@@ -16,22 +16,35 @@ template <class V> class DepthFirstSearch {
     public:
         explicit DepthFirstSearch(const Graph<V>& graph): adj(graph.adjacencyList()) {}
 
-        Path<V> dfs(const V* vertex) const {
+        Path<V> dfs(const V& vertex) const {
             if(!adj.contains(vertex)) 
                 throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
 
-            Set<V> visited;
+            Map<V, int> idxs;
             ArrayList<V> vertices = adj.keys();
 
             Path<V> path;
             Stack<V> stack;
+
             stack.push(vertex);
             while(!stack.isEmpty()) {
-                V v = stack.pop();
-                visited.add(v);
+                V v = stack.peek();
+                if(!idxs.contains(v)) idxs[v] = 0;
                 path.add(v);
 
-                for(V u : adj.get(v)) if(!visited.contains(u)) stack.push(u);
+                Set<V> neighbors = adj.get(v);
+                while(idxs[v] < neighbors.size() && idxs.contains(neighbors.get(idxs[v]))) {
+                    idxs[v]++;
+                }
+                
+                if(idxs[v] < neighbors.size()) stack.push(neighbors.get(idxs[v]));
+                else stack.pop();
+
+                if(stack.isEmpty()) {
+                    int i = 0;
+                    while(i < vertices.size() && idxs.contains(vertices[i])) ++i;
+                    if(i < vertices.size()) stack.push(vertices[i]);
+                }
             }
 
             return path;

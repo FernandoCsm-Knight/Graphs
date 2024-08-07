@@ -121,7 +121,7 @@ template<typename T> class UnionFind {
          * @param p The element to get the size.
          * @return int The size of the component that p belongs to.
          */
-        int componentSize(int p) {
+        int componentSize(T p) {
             return sizes[this->find(p)];
         }
         
@@ -132,7 +132,7 @@ template<typename T> class UnionFind {
          * @param q The second element.
          * @return True if the elements p and q are connected, false otherwise.
          */
-        bool connected(int p, int q) {
+        bool connected(T p, T q) {
             return this->find(p) == this->find(q);
         }
 

@@ -45,7 +45,7 @@ template <class V> class ShortestPath {
 
                 if(!visited.contains(w)) {
                     visited.add(w);
-                    for(V u : adj.get(w)) {
+                    for(const V& u : adj.get(w)) {
                         if(!visited.contains(u)) {
                             if(distances[u] > distances[w] + graph.weight(w, u)) {
                                 distances[u] = distances[w] + graph.weight(w, u);
