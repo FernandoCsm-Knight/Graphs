@@ -2,7 +2,7 @@
 
 ### Author: Fernando Campos Silva Dal Maria
 
-![Eulerian Graph Image](img/graph_visualization.png)
+![Eulerian Graph Image](/src/scripts/assets/graph_visualization.png)
 
 ## Description
 

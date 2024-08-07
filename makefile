@@ -32,12 +32,12 @@ IMGDIR := img
 OUTPUT_DIRS := $(OBJDIR) $(BINDIR) $(DATADIR) $(TMPDIR) $(IMGDIR)
 CLEAN_DIRS := $(OBJDIR) $(BINDIR) $(TMPDIR)
 
-# Graphviz DOT file
-DOTFILE := toPlot.dot
-DOTPNGFILE := graph_from_dot.png
-
 # Phony targets
-.PHONY: all clean test dot create_dirs
+.PHONY: all clean test create_dirs
+
+# Create output directories
+create_dirs:
+	@mkdir -p $(OUTPUT_DIRS)
 
 # Default target
 all: create_dirs $(EXE)
@@ -68,7 +68,7 @@ valgrind: $(EXE)
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(EXE)
 
 # Run target
-run: $(EXE)
+run: all
 	./$(EXE)
 
 # Rebuild target
@@ -88,11 +88,3 @@ clean_img:
 # Clean data directory
 clean_data:
 	rm -r $(DATADIR)/*
-
-# Generate Graphviz DOT file
-dot: $(EXE)
-	dot -Tpng $(TMPDIR)/$(DOTFILE) -o $(IMGDIR)/$(DOTPNGFILE)
-
-# Create output directories
-create_dirs:
-	@mkdir -p $(OUTPUT_DIRS)

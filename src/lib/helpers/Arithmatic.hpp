@@ -13,76 +13,126 @@
 #define ARITHMETIC_HPP
 
 #include <cmath>
-#include <concepts>
 
 #include "../datastructs/ArrayList.hpp"
-
-class Arithmetic {
-    public:
-        /**
-         * @brief Calculates the factorial of a number.
-         * 
-         * @param n the number to calculate the factorial.
-         * @return unsigned long long the factorial of the number.
-         */
-        unsigned long long factorial(int n) const {
-            int num = 1;
-            for(int i = 1; i <= n; ++i) num *= i;
-            return num;
-        }
-        
-        /**
-         * @brief Calculates the number of permutations of a set of n elements.
-         * 
-         * @param k the number of elements to permute.
-         * @return unsigned long long the number of permutations.
-         */
-        unsigned long long permutations(int k) const {  
-            return factorial(k);
-        }
-        
-        /**
-         * @brief Calculates the number of permutations of a set of n elements.
-         * 
-         * @param n the number of elements in the set.
-         * @param k the number of elements to permute.
-         * @return unsigned long long the number of permutations.
-         */
-        unsigned long long arrangements(int n, int k) const {            
-            unsigned long long num = 1;
-            for(int i = n - k + 1; i <= n; ++i) num *= i;
-            return num;
-        }
-        
-        /**
-         * @brief Calculates the number of combinations of a set of n elements.
-         * 
-         * @param n the number of Graph<int> graph(GraphTypes::COMPLETE, 9, false);
-         * @param k the number of elements to combine.
-         * @return unsigned long long the number of combinations.
-         */
-        unsigned long long combinations(int n, int k) const {
-            unsigned long long num = 1;
-            int greater = std::max(k, n - k);
-            for(int i = greater + 1; i <= n; ++i) num *= i;
-            return num / factorial(n - greater);
-        }
-};
+#include "../types/Numeric.hpp"
 
 namespace art {
     /**
-     * @brief A concept that checks if a type is a numeric type.
+     * @brief Calculates the factorial of a number.
      * 
-     * @tparam T the type to check.
+     * @param n the number to calculate the factorial.
+     * @return unsigned long long the factorial of the number.
      */
-    template <typename T>
-    concept Numeric = requires(T t) {
-        std::is_same_v<T, int> ||
-        std::is_same_v<T, long> ||
-        std::is_same_v<T, float> ||
-        std::is_same_v<T, double>;
-    };
+    unsigned long long factorial(int n) {
+        int num = 1;
+        for(int i = 1; i <= n; ++i) num *= i;
+        return num;
+    }
     
+    /**
+     * @brief Calculates the number of permutations of a set of n elements.
+     * 
+     * @param k the number of elements to permute.
+     * @return unsigned long long the number of permutations.
+     */
+    unsigned long long permutations(int k) {  
+        return factorial(k);
+    }
+    
+    /**
+     * @brief Calculates the number of permutations of a set of n elements.
+     * 
+     * @param n the number of elements in the set.
+     * @param k the number of elements to permute.
+     * @return unsigned long long the number of permutations.
+     */
+    unsigned long long arrangements(int n, int k) {            
+        unsigned long long num = 1;
+        for(int i = n - k + 1; i <= n; ++i) num *= i;
+        return num;
+    }
+    
+    /**
+     * @brief Calculates the number of combinations of a set of n elements.
+     * 
+     * @param n the number of Graph<int> graph(GraphTypes::COMPLETE, 9, false);
+     * @param k the number of elements to combine.
+     * @return unsigned long long the number of combinations.
+     */
+    unsigned long long combinations(int n, int k) {
+        unsigned long long num = 1;
+        int greater = std::max(k, n - k);
+        for(int i = greater + 1; i <= n; ++i) num *= i;
+        return num / factorial(n - greater);
+    }
+
+    /**
+     * @brief Calculates the number of combinations of a set of n elements.
+     * 
+     * @tparam T the type of the elements in the array.
+     * @param arr the array to combine.
+     * @param k the number of elements to combine.
+     * @return ArrayList<ArrayList<T>> the combinations of the elements in the array.
+     */
+    template <typename T> ArrayList<ArrayList<T>> combinations(ArrayList<T> arr, int k) {
+        ArrayList<ArrayList<T>> result;
+        std::string bitmask(k, 1); 
+        bitmask.resize(arr.size(), 0);
+
+        do {
+            ArrayList<T> curr;
+
+            for(int i = 0; i < arr.size(); ++i) {
+                if(bitmask[i]) curr.add(arr[i]);
+            }
+
+            result.add(curr);
+        } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
+
+        return result;
+    }
+
+    /**
+     * @brief Calculates the number of arrangements of a set of n elements.
+     * 
+     * @tparam T the type of the elements in the array.
+     * @param arr the array to arrange.
+     * @param k the number of elements to arrange.
+     * @return ArrayList<ArrayList<T>> the arrangements of the elements in the array.
+     */
+    template <typename T> ArrayList<ArrayList<T>> arrangements(ArrayList<T> arr, int k) {
+        ArrayList<ArrayList<T>> comb = combinations<T>(arr, k);
+        ArrayList<ArrayList<T>> result;
+
+        for(ArrayList<T> c : comb) {
+            do {
+                result.add(c);
+            } while(std::next_permutation(c.begin(), c.end()));
+        }
+
+        return result; 
+    }
+
+    /**
+     * @brief Calculates the number of permutations of a set of n elements.
+     * 
+     * @tparam T the type of the elements in the array.
+     * @param arr the array to permute.
+     * @param sorted a boolean value that indicates if the array is sorted.
+     * @return ArrayList<ArrayList<T>> the permutations of the elements in the array.
+     */
+    template <typename T> ArrayList<ArrayList<T>> permutations(ArrayList<T> arr, bool sorted = false) {
+        ArrayList<ArrayList<T>> result;
+        if (!sorted) std::sort(arr.begin(), arr.end());
+
+        do {
+            result.add(arr);
+        } while(std::next_permutation(arr.begin(), arr.end()));
+
+        return result;
+    }
+
     /**
      * @brief Calculates the sum of the elements in an array.
      * 

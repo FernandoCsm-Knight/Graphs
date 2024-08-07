@@ -27,6 +27,13 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
+#include "algorithms/CycleDetection.hpp"
+#include "algorithms/StronglyConnectedComponents.hpp"
+#include "algorithms/ShortestPath.hpp"
+#include "algorithms/MinimumSpanningTree.hpp"
+#include "algorithms/DepthFirstSearch.hpp"
+#include "algorithms/BreathFirstSearch.hpp"
+
 #include "datastructs/ArrayList.hpp"
 #include "datastructs/Map.hpp"
 #include "datastructs/Queue.hpp"
@@ -41,18 +48,11 @@
 #include "helpers/Pair.hpp"
 #include "helpers/Path.hpp"
 #include "helpers/Vertex.hpp"
+#include "helpers/Arithmatic.hpp"
 #include "helpers/GraphGenerator.hpp"
 
-/**
- * @brief Represents the type of cycle detection algorithm.
- * 
- * - PERMUTATION: The cycle detection algorithm is based on permutations.
- * - WALK: The cycle detection algorithm is based on depth-first search.
- */
-enum CycleDetectionType {
-    PERMUTATION,
-    WALK,
-};
+#include "types/CycleDetectionType.hpp"
+#include "types/MinimumSpanningTreeType.hpp"
 
 /**
  * @brief Represents a graph data structure.
@@ -65,140 +65,12 @@ template <class V> class Graph {
         Set<Edge<V>> edges; ///< The edge list of the graph.
         bool directed = false; ///< Indicates whether the graph is directed.
 
-        Path<V> parentsToPath(V* parents, double* const distances, const V& dest) const {
-            ArrayList<V> vertices = adj.keys();
-            int indexDest = vertices.indexOf(dest, true);
-            if(distances[indexDest] == std::numeric_limits<double>::infinity()) 
-                return Path<V>(distances[indexDest]);
-
-            Path<V> path;
-            int index = indexDest;
-            V tmp = parents[index];
-            while(vertices[index] != tmp) {
-                path.addParent(vertices[index]);
-                index = vertices.indexOf(tmp, true);
-                tmp = parents[index];
-            }
-
-            path.addParent(vertices[index]);
-            path.setWeight(distances[indexDest]);
-            return path;
-        }
-
-        void walkRecurse(const V& v, const V& parent, Map<V, V>& visited, Set<V>& counting, ArrayList<ArrayList<V>>& cycles, bool isomorphic) const {
-            visited[v] = parent;
-            counting.add(v);
-
-            for(V u : adj.get(v)) {
-                if(u != parent) {
-                    if(!visited.contains(u)) {
-                        walkRecurse(u, v, visited, counting, cycles, isomorphic);
-                    } else {
-                        ArrayList<V> cycle;
-                        V current = v;
-
-                        cycle.add(u);
-                        while(current != u) {
-                            cycle.add(current);
-                            current = visited[current];
-                        }
-
-                        if(cycle.size() >= 3) addIfUnique(cycles, cycle, isomorphic);
-                    }
-                }
-            }
-
-            visited.remove(v);
-        }
-
-        ArrayList<ArrayList<V>> walkCycles(bool isomorphic) const {
-            ArrayList<ArrayList<V>> cycles;
-            Map<V, V> visited;
-            Set<V> counting;
-
-            ArrayList<V> vertices = adj.keys();
-            for(const V& start : vertices) {
-                if(!counting.contains(start)) {
-                    walkRecurse(start, start, visited, counting, cycles, isomorphic);
-                }
-            }
-
-            return cycles;
-        }
-
-        bool areCyclesIsomorphic(const ArrayList<V>& cycle1, const ArrayList<V>& cycle2) const {
-            bool isomorphic = false;
-
-            if (cycle1.size() == cycle2.size()) {
-                int size = cycle1.size();
-                for (int i = 0; i < size && !isomorphic; ++i) {
-                    bool match = true;
-                    for (int j = 0; j < size && match; ++j) 
-                        if (cycle1.get(j) != cycle2.get((i + j) % size)) 
-                            match = false;
-
-                    isomorphic = match;
-                }
-
-                if(!isomorphic) {
-                    ArrayList<V> reversedCycle2 = cycle2;
-                    std::reverse(reversedCycle2.begin(), reversedCycle2.end());
-                    for (int i = 0; i < size && !isomorphic; ++i) {
-                        bool match = true;
-                        for (int j = 0; j < size && match; ++j) 
-                            if (cycle1.get(j) != reversedCycle2[(i + j) % size]) 
-                                match = false;
-
-                        isomorphic = match;
-                    }
-                }
-            }
-            
-            return isomorphic; 
-        }
-
-        void addIfUnique(ArrayList<ArrayList<V>>& uniqueCycles, const ArrayList<V>& cycle, bool isomorphic) const {
-            bool unique = true;
-
-            for(int j = 0; j < uniqueCycles.size() && unique; ++j) {
-                bool found = uniqueCycles[j].size() == cycle.size();
-                for(int k = 0; k < cycle.size() && found; ++k) 
-                    found = uniqueCycles[j].contains(cycle.get(k));
-
-                if(found && isomorphic) found = areCyclesIsomorphic(uniqueCycles[j], cycle);
-                unique = !found;
-            }
-
-            if(unique) uniqueCycles.add(cycle);
-        }
-
-        ArrayList<ArrayList<V>> permutationCycles(bool isomorphic) const {
-            ArrayList<ArrayList<V>> uniqueCycles;
-            
-            for(int i = 3; i <= this->size(); ++i) {
-                ArrayList<ArrayList<V>> perms = arrangements(i);
-
-                for(ArrayList<V> perm : perms) {
-                    bool found = true;
-                    for(int j = 0; j < perm.size() && found; ++j) 
-                        found = adj.get(perm[j]).contains(perm[(j + 1) % perm.size()]);
-
-                    if(found) {
-                        addIfUnique(uniqueCycles, perm, isomorphic);
-                    }
-                }
-            }
-
-            return uniqueCycles;
-        }
-
     public:
-
         // Constructors & Destructor
 
         Graph(bool isDirected = false): directed(isDirected) {}
 
-        Graph(GraphTypes type, int n = 5, bool isDirected = false) {
+        Graph(const GraphTypes type, const int n = 5, const bool isDirected = false) {
             GraphGenerator<V> generator;
             switch(type) {
                 case GraphTypes::REGULAR:
@@ -235,7 +107,7 @@ template <class V> class Graph {
             }
         }
 
-        Graph(Edge<V> edges[], int size, bool isDirected = false) {
+        Graph(const Edge<V> edges[], const int size, const bool isDirected = false) {
             for (int i = 0; i < size; ++i) 
                 this->addEdge(edges[i]);
 
@@ -465,69 +337,10 @@ template <class V> class Graph {
         }
 
         ArrayList<ArrayList<V>> stronglyConnectedComponents() const {
-            if(!directed) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
-
-            int id = 0;
-            Map<V, int> ids;
-            Map<V, int> lowLink;
-            Map<V, bool> onStack;
-
-            Stack<V> stack;
-            Stack<V> dfsStack;
-            ArrayList<V> vertices = adj.keys();
-            ArrayList<ArrayList<V>> components;
-            for(const V& vertex : vertices) {
-                ids[vertex] = -1;
-                lowLink[vertex] = -1;
-                onStack[vertex] = false;
-            }
-
-            for(const V& vertex : vertices) {
-                if(ids[vertex] == -1) {
-                    dfsStack.push(vertex);
-                    stack.push(vertex);
-                    ids[vertex] = id;
-                    lowLink[vertex] = id;
-                    onStack[vertex] = true;
-                    ++id;
-
-                    while(!dfsStack.isEmpty()) {
-                        V u = dfsStack.peek();
-                        bool done = true;
-
-                        for(V w : adj.get(u)) {
-                            if(ids[w] == -1) {
-                                dfsStack.push(w);
-                                stack.push(w);
-                                ids[w] = id;
-                                lowLink[w] = id;
-                                onStack[w] = true;
-                                id++;
-                                done = false;
-                                break;
-                            } else if(onStack[w]) {
-                                lowLink[u] = std::min(lowLink[w], lowLink[u]);
-                            }
-                        }
-
-                        if(done) {
-                            dfsStack.pop();
-                            if(lowLink[u] == ids[u]) {
-                                ArrayList<V> list;
-                                V w;
-                                do {
-                                    w = stack.pop();
-                                    onStack[w] = false;
-                                    list.add(w);
-                                } while(w != u);
-                                components.add(list);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return components;
+            StronglyConnectedComponents<V> *sc = new StronglyConnectedComponents<V>(*this);
+            ArrayList<ArrayList<V>> arr = sc->stronglyConnectedComponents();
+            delete sc;
+            return arr;
         }
 
         void transpose() {
@@ -607,199 +420,54 @@ template <class V> class Graph {
             }
         }
 
-        ArrayList<ArrayList<V>> cycles(CycleDetectionType type = CycleDetectionType::WALK, bool isomorphic = true) const {
-            if(CycleDetectionType::PERMUTATION == type) return permutationCycles(isomorphic);
-            else return walkCycles(isomorphic);
+        ArrayList<ArrayList<V>> cycles(const CycleDetectionType type = CycleDetectionType::WALK, const bool isomorphic = true) const {
+            ArrayList<ArrayList<V>> arr;
+            CycleDetection<V> *cd = new CycleDetection(*this);
+
+            if(type == CycleDetectionType::WALK) arr = cd->permutationCycles(isomorphic);
+            else if(type == CycleDetectionType::PERMUTATION) arr = cd->walkCycles(isomorphic);
+
+            delete cd;
+            return arr;
         }
 
         ArrayList<ArrayList<V>> permutations() const {
-            ArrayList<ArrayList<V>> allPermutations;
-            ArrayList<V> vertices = adj.keys();
-
-            do {
-                allPermutations.add(vertices);
-            } while(std::next_permutation(vertices.begin(), vertices.end()));
-            
-            return allPermutations;
+            return art::permutations<V>(adj.keys(), true);
         }
 
         ArrayList<ArrayList<V>> arrangements(int k) const {
-            ArrayList<ArrayList<V>> comb = combinations(k);
-            ArrayList<ArrayList<V>> allArrangements;
-
-            for(ArrayList<V> c : comb) {
-                do {
-                    allArrangements.add(c);
-                } while(std::next_permutation(c.begin(), c.end()));
-            }
-
-            return allArrangements; 
+            return art::arrangements<V>(adj.keys(), k);
         }
 
         ArrayList<ArrayList<V>> combinations(int k) const {
-            ArrayList<V> vertices = adj.keys();
-            ArrayList<ArrayList<V>> allCombinations;
-
-            std::string bitmask(k, 1); 
-            bitmask.resize(vertices.size(), 0);
-
-            do {
-                ArrayList<V> curr;
-
-                for(int i = 0; i < vertices.size(); ++i) {
-                    if(bitmask[i]) curr.add(vertices[i]);
-                }
-
-                allCombinations.add(curr);
-            } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
-
-            return allCombinations;
+            return art::combinations<V>(adj.keys(), k);
         }
 
-
         Path<V> depthFirstSearch(const V& vertex) const {
-            if(!adj.contains(vertex)) 
-                throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
-
-            Set<V> visited;
-            ArrayList<V> vertices = adj.keys();
-
-            Path<V> path;
-            Stack<V> stack;
-            stack.push(vertex);
-            while(!stack.isEmpty()) {
-                V v = stack.pop();
-                visited.add(v);
-                path.add(v);
-
-                for(V u : adj.get(v)) if(!visited.contains(u)) stack.push(u);
-            }
-
+            DepthFirstSearch<V> *dfs = new DepthFirstSearch<V>(*this);
+            Path<V> path = dfs->depthFirstSearch(vertex);
+            delete dfs;
             return path;
         }
 
         Path<V> breathFirstSearch(const V& vertex) const {
-            if(!adj.contains(vertex))
-                throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
-
-            ArrayList<V> vertices = adj.keys();
-            Set<V> visited;
-
-            Path<V> path;
-            Queue<V> queue;
-            queue.push(vertex);
-            while(!queue.isEmpty()) {
-                V v = queue.pop();
-                visited.add(v);
-                path.add(v);
-
-                for(V u : adj.get(v)) if(!visited.contains(u)) queue.push(u);
-            }
-            
+            BreathFirstSearch<V> *bfs = new BreathFirstSearch<V>(*this);
+            Path<V> path = bfs->breathFirstSearch(vertex);
+            delete bfs;
             return path;
         }
 
         int distance(const V& src, const V& dest) const {
-            if(!adj.contains(src) || !adj.contains(dest)) 
-                throw std::invalid_argument("The given vertices do not exist in the graph.");
-
-            if(src == dest) return 0;
-
-            ArrayList<V> vertices = adj.keys();
-            PriorityQueue<Pair<int, V>> queue;
-            Set<V> visited;
-
-            Pair<int, V> pair(0, src);
-            queue.push(pair);
-            while(!queue.isEmpty() && pair.second() != dest) {
-                pair = queue.poll();
-                visited.add(pair.second());
-                
-                for(V u : adj.get(pair.second())) 
-                    if(!visited.contains(u)) 
-                        queue.push(Pair<int, V>(pair.first() + 1, u));
-            }
-
-            return (pair.second() == dest) ? pair.first() : -1;
+            ShortestPath<V> *sp = new ShortestPath<V>(*this);
+            int dist = sp->distance(src, dest);
+            delete sp;
+            return dist;
         }
 
         Map<V, Path<V>> shortestPath(const V& vertex) const {
-            if(!adj.contains(vertex)) 
-                throw std::invalid_argument("The given vertices do not exist in the graph.");
-
-            bool hasNegativeWeight = false;
-            for(int i = 0; i < edges.size() && !hasNegativeWeight; i++) 
-                hasNegativeWeight = edges.get(i).getWeight() < 0;
-
-            ArrayList<V> vertices = adj.keys();
-            double distances[this->size()];
-            V parents[this->size()];
-
-            for(int i = 0; i < this->size(); i++) {
-                distances[i] = std::numeric_limits<double>::infinity();
-                parents[i] = vertices[i];
-            }
-
-            distances[vertices.indexOf(vertex, true)] = 0;
-
-            if(hasNegativeWeight) {
-                for(int i = 0; i < this->size() - 1; i++) {
-                    for(Edge<V> edge : edges) {
-                        int indexSrc = vertices.indexOf(edge.getSource(), true);
-                        int indexDest = vertices.indexOf(edge.getDestination(), true);
-
-                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
-                            distances[indexDest] = distances[indexSrc] + edge.getWeight();
-                            parents[indexDest] = edge.getSource();
-                        }
-                    }
-                }
-
-                for(int i = 0; i < this->size() - 1; i++) {
-                    for(Edge<V> edge : edges) {
-                        int indexSrc = vertices.indexOf(edge.getSource(), true);
-                        int indexDest = vertices.indexOf(edge.getDestination(), true);
-
-                        if(distances[indexSrc] + edge.getWeight() < distances[indexDest]) {
-                            distances[indexDest] = -std::numeric_limits<double>::infinity();
-                            parents[indexDest] = edge.getSource();
-                        }
-                    }
-                }
-            } else {
-                PriorityQueue<Pair<double, V>> queue;
-                bool visited[this->size()];
-
-                for(int i = 0; i < this->size(); i++) 
-                    visited[i] = false;
-
-                queue.push(Pair<double, V>(0.0, vertex));
-                while(!queue.isEmpty()) {
-                    V w = queue.poll().second();
-                    int indexW = vertices.indexOf(w, true);
-
-                    visited[indexW] = true;
-                    for(V u : adj.get(w)) {
-                        int indexU = vertices.indexOf(u, true);
-
-                        if(!visited[indexU]) {
-                            if(distances[indexU] < distances[indexW] + weight(w, u)) {
-                                distances[indexU] = distances[indexU];
-                            } else {
-                                distances[indexU] = distances[indexW] + weight(w, u);
-                                parents[indexU] = w;
-                            }
-
-                            queue.push(Pair<double, V>(distances[indexU], u));
-                        }
-                    }
-                }
-            }
-
-            Map<V, Path<V>> map;
-            for(int i = 0; i < vertices.size(); i++) 
-                map.put(vertices[i], parentsToPath(parents, distances, vertices[i]));
-            
+            ShortestPath<V> *sp = new ShortestPath<V>(*this);
+            Map<V, Path<V>> map = sp->shortestPath(vertex);
+            delete sp;
             return map;
         }
 
@@ -811,29 +479,10 @@ template <class V> class Graph {
         }
 
         Map<V, Map<V, double>> allDistances() const {
-            ArrayList<V> vertices = this->adj.keys();
-            Map<V, Map<V, double>> distances;
-
-            for(const V& v : vertices) {
-                for(const V& u : vertices) {
-                    if(v == u) distances[v][u] = 0.0;
-                    else distances[v][u] = std::numeric_limits<double>::infinity();
-                } 
-            }
-
-            for(const Edge<V>& edge : edges) 
-                distances[edge.getSource()][edge.getDestination()] = edge.getWeight();
-
-            for(const V& w : vertices) {
-                for(const V& v : vertices) {
-                    for(const V& u : vertices) {
-                        double len = distances[v][w] + distances[w][u];
-                        if(len < distances[v][u]) distances[v][u] = len;
-                    }
-                }
-            }
-
-            return distances;
+            ShortestPath<V> *sp = new ShortestPath<V>(*this);
+            Map<V, Map<V, double>> map = sp->floydWarshal();
+            delete sp;
+            return map;
         }
 
         double weight(const V& src, const V& dest) const {
@@ -850,38 +499,59 @@ template <class V> class Graph {
             return edges.get(idx).getWeight();
         }
 
-        Path<Edge<V>> minimumSpanningTree() const {
-            IndexedPriorityQueue<Pair<double, Edge<V>>> queue(this->size());
-            ArrayList<V> vertices = adj.keys();
-            bool visited[this->size()];
+        Path<Edge<V>> minimumSpanningTree(const MinimumSpanningTreeType type = MinimumSpanningTreeType::PRIM) const {
             Path<Edge<V>> path;
+            MinimumSpanningTree<V> *mst = new MinimumSpanningTree<V>(*this);
 
-            for(int i = 0; i < this->size(); i++) 
-                visited[i] = false;
+            if(type == MinimumSpanningTreeType::PRIM) path = mst->prim();
+            else if(type == MinimumSpanningTreeType::KRUSKAL) path = mst->kruskal();
 
-            queue.insert(0, Pair<double, Edge<V>>(0.0, Edge<V>(vertices[0], vertices[0], directed)));
+            delete mst;
+            return path;
+        }
 
-            while(!queue.isEmpty()) {
-                visited[queue.minKey()] = true;
-                Pair<double, Edge<V>> pair = queue.poll();
-                path.add(pair.second(), pair.first());
+        ArrayList<V> base() const {
+            ArrayList<V> base;
+            ArrayList<V> vertices = adj.keys();
 
-                V u = pair.second().getDestination();
-                for(V w : adj.get(u)) {
-                    int indexW = vertices.indexOf(w, true);
+            if(directed) {
+                ArrayList<ArrayList<V>> sccs = this->stronglyConnectedComponents();
                 
-                    if(!visited[indexW]) {
-                        double weight = this->weight(u, w);
-
-                        if(queue.contains(indexW)) 
-                            queue.decrease(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, directed, weight)));
-                        else 
-                            queue.insert(indexW, Pair<double, Edge<V>>(weight, Edge<V>(u, w, directed, weight)));
+                Graph<int> hyperGraph(true);
+                Map<V, int> vertexToHypervertex;
+                
+                for (int i = 0; i < sccs.size(); ++i) {
+                    for (const V& v : sccs[i]) {
+                        vertexToHypervertex[v] = i;
                     }
                 }
+                
+                for (const Edge<V>& edge : edges) {
+                    int srcHyper = vertexToHypervertex[edge.getSource()];
+                    int destHyper = vertexToHypervertex[edge.getDestination()];
+                    if (srcHyper != destHyper) {
+                        hyperGraph.addEdge(srcHyper, destHyper);
+                    }
+                }
+                
+                for (int i = 0; i < sccs.size(); ++i) {
+                    if (hyperGraph.degree(i).first() == 0) {
+                        base.add(sccs[i][0]);
+                    }
+                }
+            } else {
+                Set<V> verticesSet = vertices.toSet();
+                for(const V& v : vertices) {
+                    if(adj.get(v).size() == 0) {
+                        verticesSet.pop(v);
+                        base.add(v);
+                    }
+                }
+
+                if(!verticesSet.isEmpty()) base.add(verticesSet.get(0));
             }
 
-            return path;
+            return base;
         }
 
         ArrayList<V> clasp(const V& vertex, const char& type = '+') const {
@@ -1015,31 +685,10 @@ template <class V> class Graph {
             std::ofstream file(customPath ? fileName : ("data/" + fileName));
             if (!file.is_open()) {
                 std::cout << "Failed to open file: " << fileName << std::endl;
-                return;
+            } else {
+                file << json;
+                file.close();
             }
-
-            file << json;
-            file.close();
-        }
-
-
-        void exportDOT() const {
-            std::string filename = "toPlot.dot";
-            std::ofstream file("tmp/" + filename);
-            file << (directed ? "digraph" : "graph") << " G {\n";
-            
-            for(const V& v : adj.keys()) {
-                file << "  \"" << v << "\";\n";
-            }
-            
-            for(const Edge<V>& e : edges) {
-                file << "  \"" << e.getSource() << "\" " 
-                    << (directed ? "->" : "--") << " \"" 
-                    << e.getDestination() << "\";\n";
-            }
-            
-            file << "}\n";
-            file.close();
         }
 
         void plot(std::string pngFileName = "", bool showInAWindow = false) const {

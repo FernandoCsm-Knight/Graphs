@@ -11,6 +11,6 @@ using std::string;
 
 int main() {
     Graph<int> graph;
-    graph.import("graph.json");
-    graph.plot();
+    graph.draw();
+    std::cout << graph;
 }

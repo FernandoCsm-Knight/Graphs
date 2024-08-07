@@ -291,17 +291,28 @@ template <class T> class ArrayList {
          * @param element The element to be added.
          */
         void addInOrder(const T& element) {
-            int index = 0;
+            int left = 0;
+            int right = this->length - 1;
 
-            if(comparator) {
-                while(index < this->length && comparator(this->array[index], element) < 0)
-                    index++;
-            } else {
-                while(index < this->length && this->array[index] < element)
-                    index++;
+            while (left <= right) {
+                int mid = left + (right - left) / 2;
+
+                if (comparator) {
+                    if (comparator(this->array[mid], element) < 0) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                } else {
+                    if (this->array[mid] < element) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
             }
 
-            this->add(index, element);
+            this->add(left, element);
         }
 
         /**

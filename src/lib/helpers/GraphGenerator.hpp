@@ -15,21 +15,8 @@
 #include <stdexcept>
 #include "Arithmatic.hpp"
 #include "../Graph.hpp"
-
-/**
- * @brief A list of graph types that can be used to generate a graph.
- * 
- */
-enum GraphTypes {
-    REGULAR,
-    COMPLETE,
-    BIPARTITE,
-    COMPLETE_BIPARTITE,
-    EULERIAN,
-    TREE,
-    FOREST,
-    CYCLIC,
-};
+#include "../types/Numeric.hpp"
+#include "../types/GraphTypes.hpp"
 
 template <typename T> class Graph;
 

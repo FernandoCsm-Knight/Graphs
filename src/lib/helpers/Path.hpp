@@ -41,6 +41,10 @@ template <class V> class Path {
             return *this;
         }
 
+        int size() const {
+            return path.size();
+        }
+
         double getWeight() const {
             return weight;
         }
