@@ -70,6 +70,11 @@ class GraphDrawer:
         data = {
             "directed": self.is_directed,
             "multigraph": False,
+            "vertices": [
+                {
+                    "id": node
+                } for node in self.G.nodes()
+            ],
             "edges": [
                 {
                     "source": u,

@@ -20,30 +20,21 @@ template <class V> class DepthFirstSearch {
             if(!adj.contains(vertex)) 
                 throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
 
-            Map<V, int> idxs;
-            ArrayList<V> vertices = adj.keys();
-
             Path<V> path;
             Stack<V> stack;
-
+            Set<V> visited;
+            
             stack.push(vertex);
+            visited.add(vertex);
             while(!stack.isEmpty()) {
-                V v = stack.peek();
-                if(!idxs.contains(v)) idxs[v] = 0;
+                V v = stack.pop();
                 path.add(v);
 
-                Set<V> neighbors = adj.get(v);
-                while(idxs[v] < neighbors.size() && idxs.contains(neighbors.get(idxs[v]))) {
-                    idxs[v]++;
-                }
-                
-                if(idxs[v] < neighbors.size()) stack.push(neighbors.get(idxs[v]));
-                else stack.pop();
-
-                if(stack.isEmpty()) {
-                    int i = 0;
-                    while(i < vertices.size() && idxs.contains(vertices[i])) ++i;
-                    if(i < vertices.size()) stack.push(vertices[i]);
+                for(V u : adj.get(v)) {
+                    if(!visited.contains(u)) {
+                        visited.add(u);
+                        stack.push(u);
+                    }
                 }
             }
 

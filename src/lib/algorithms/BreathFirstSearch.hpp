@@ -26,12 +26,17 @@ template <class V> class BreathFirstSearch {
             Path<V> path;
             Queue<V> queue;
             queue.push(vertex);
+            visited.add(vertex);
             while(!queue.isEmpty()) {
                 V v = queue.pop();
-                visited.add(v);
                 path.add(v);
 
-                for(V u : adj.get(v)) if(!visited.contains(u)) queue.push(u);
+                for(V u : adj.get(v)) {
+                    if(!visited.contains(u)) {
+                        visited.add(u);
+                        queue.push(u);
+                    }
+                }
             }
             
             return path;

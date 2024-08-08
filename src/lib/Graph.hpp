@@ -657,6 +657,12 @@ template <class V> class Graph {
             edges.clear();
             directed = data["directed"];
 
+                std::cout << data["vertices"] << std::endl;
+            for (const auto& vertex : data["vertices"]) {
+                V v = vertex["id"].get<V>();
+                addVertex(v);
+            }
+
             for (const auto& link : data["edges"]) {
                 V source = link["source"].get<V>();
                 V target = link["target"].get<V>();
@@ -670,7 +676,16 @@ template <class V> class Graph {
             data["directed"] = directed;
             data["multigraph"] = false;
 
+            nlohmann::json vertices = nlohmann::json::array();
+
+            for (const V& vertex : adj.keys()) {
+                nlohmann::json node;
+                node["id"] = vertex;
+                vertices.push_back(node);
+            }
+
             nlohmann::json links = nlohmann::json::array();
+
             for (const Edge<V>& edge : edges) {
                 nlohmann::json link;
                 link["source"] = edge.getSource();
@@ -724,7 +739,7 @@ template <class V> class Graph {
             }
         
             try {
-                import("tmp/importable.json");
+                import("tmp/importable.json", true);
                 std::cout << "Graph imported successfully!" << std::endl;
             } catch (const std::exception& e) {
                 std::cout << "No graph to import!" << std::endl;
