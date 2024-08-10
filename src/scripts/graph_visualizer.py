@@ -42,13 +42,15 @@ def visualize_graph(json_file, show_in_a_window, png_file_name):
     for edge in data['edges']:
         G.add_edge(edge['source'], edge['target'], weight=edge['weight'])
 
+    plt.figure(figsize=(10, 4))
     pos = nx.kamada_kawai_layout(G)
-    nx.draw_networkx_nodes(G, pos, node_size=500, node_color='lightblue')
+    nx.draw_kamada_kawai(G, pos, node_size=500, node_color='lightblue')
     nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
     nx.draw_networkx_edges(G, pos)
     edge_weights = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels={k: (v if v != 0.0 else '') for k, v in edge_weights.items()})
     plt.axis('off')
+    plt.tight_layout()
     plt.savefig(png_file_name, format='png', dpi=300, bbox_inches='tight')
     
     if show_in_a_window:

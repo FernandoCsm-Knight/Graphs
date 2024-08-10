@@ -4,6 +4,9 @@
  * @brief A C++ implementation of the UnionFind data structure.
  *        It is used to keep track of a set of elements partitioned
  *        into a number of disjoint subsets.
+ *        Made based on William Fiset implementation that can be 
+ *        found at https://github.com/williamfiset/algorithms.
+ * 
  * @version 1.0.0
  * @date 2023-10-08
  * 

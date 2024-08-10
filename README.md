@@ -10,66 +10,53 @@ This repository contains the implementation of some graph algorithms and data st
 
 ```bash
 .
-├── bin
-│   └── Main
-├── data
-│   └── graph_0.json
-├── img
-├── LICENSE
-├── makefile
-├── obj
-│   └── Main.o
-├── README.md
-├── src
-│   ├── lib
-│   │   ├── datastructs
-│   │   │   ├── ArrayList.hpp
-│   │   │   ├── HashMap.hpp
-│   │   │   ├── HashSet.hpp
-│   │   │   ├── IndexedPriorityQueue.hpp
-│   │   │   ├── iterators
-│   │   │   │   ├── ArrayIterator.hpp
-│   │   │   │   └── LinkedListIterator.hpp
-│   │   │   ├── LinkedList.hpp
-│   │   │   ├── Map.hpp
-│   │   │   ├── MinHeap.hpp
-│   │   │   ├── PriorityQueue.hpp
-│   │   │   ├── Queue.hpp
-│   │   │   ├── RBTree.hpp
-│   │   │   ├── Set.hpp
-│   │   │   ├── Stack.hpp
-│   │   │   └── UnionFind.hpp
-│   │   ├── Graph.hpp
-│   │   └── helpers
-│   │       ├── Arithmatic.hpp
-│   │       ├── Edge.hpp
-│   │       ├── GraphGenerator.hpp
-│   │       ├── Node.hpp
-│   │       ├── Pair.hpp
-│   │       ├── Path.hpp
-│   │       ├── StopWatch.hpp
-│   │       └── Vertex.hpp
-│   ├── Main.cpp
-│   └── scripts
-│       ├── assets
-│       │   └── graph_drawer_logo.png
-│       ├── graph_drawer.py
-│       └── graph_visualizer.py
-├── test
-│   ├── lib
-│   │   ├── CycleTest.hpp
-│   │   ├── DigraphTest.hpp
-│   │   ├── GraphDijkstraTest.hpp
-│   │   ├── GraphTest.hpp
-│   │   ├── MinimumSpanningTreeTest.hpp
-│   │   ├── TestBuilder.hpp
-│   │   └── Test.hpp
-│   ├── logs
-│   │   ├── log.txt
-│   │   ├── test.log
-│   │   └── Test.log
-│   └── Test.cpp
-└── tmp
+├── lib
+│   ├── algorithms
+│   │   ├── BreathFirstSearch.hpp
+│   │   ├── CycleDetection.hpp
+│   │   ├── DepthFirstSearch.hpp
+│   │   ├── MinimumSpanningTree.hpp
+│   │   ├── ShortestPath.hpp
+│   │   └── StronglyConnectedComponents.hpp
+│   ├── datastructs
+│   │   ├── ArrayList.hpp
+│   │   ├── HashMap.hpp
+│   │   ├── HashSet.hpp
+│   │   ├── IndexedPriorityQueue.hpp
+│   │   ├── iterators
+│   │   │   ├── ArrayIterator.hpp
+│   │   │   └── LinkedListIterator.hpp
+│   │   ├── LinkedList.hpp
+│   │   ├── Map.hpp
+│   │   ├── MinHeap.hpp
+│   │   ├── PriorityQueue.hpp
+│   │   ├── Queue.hpp
+│   │   ├── RBTree.hpp
+│   │   ├── Set.hpp
+│   │   ├── Stack.hpp
+│   │   └── UnionFind.hpp
+│   ├── Graph.hpp
+│   ├── helpers
+│   │   ├── Arithmatic.hpp
+│   │   ├── Edge.hpp
+│   │   ├── GraphGenerator.hpp
+│   │   ├── Node.hpp
+│   │   ├── Pair.hpp
+│   │   ├── Path.hpp
+│   │   ├── StopWatch.hpp
+│   │   └── Vertex.hpp
+│   └── types
+│       ├── CycleDetectionType.hpp
+│       ├── GraphTypes.hpp
+│       ├── MinimumSpanningTreeType.hpp
+│       └── Numeric.hpp
+├── Main.cpp
+└── scripts
+    ├── assets
+    │   ├── graph_drawer_logo.png
+    │   └── graph_visualization.png
+    ├── graph_drawer.py
+    └── graph_visualizer.py
 ```
 
 the `src` directory contains the source code of the project, the `lib` directory contains the implementation of the data structures and algorithms, and the `test` directory contains the unit tests. The `bin` directory contains the executable file and the `obj` directory contains the object files. Furthermore, the `graph.json` file contains the graph that is used in the unit tests and the `log` directory contains the log file of the unit tests. Finally, the `makefile` contains the instructions to compile the project.
@@ -128,17 +115,16 @@ The following data structures are implemented:
 
 The following algorithms are implemented:
 
-- [Depth First Order](src/lib/Graph.hpp)
-- [Cycle Detection](src/lib/Graph.hpp)
-- [Breadth First Search](src/lib/Graph.hpp)
-- [Depth First Search](src/lib/Graph.hpp)
+- [Cycle Detection](src/lib/algorithms/CycleDetection.hpp)
+- [Breadth First Search](src/lib/algorithms/BreathFirstSearch.hpp)
+- [Depth First Search](src/lib/algorithms/DepthFirstSearch.hpp)
 - [Union Find Connected Components](src/lib/Graph.hpp)
-- [Floyd Warshall](src/lib/Graph.hpp)
-- [Dijkstra](src/lib/Graph.hpp)
-- [Bellman Ford](src/lib/Graph.hpp)
-- [Prim - MST](src/lib/Graph.hpp)
-- [Tarjan - Strongly Connected Components](src/lib/Graph.hpp)
-- [Kruskal - MST](src/lib/Graph.hpp)
+- [Floyd Warshall](src/lib/algorithms/ShortestPath.hpp)
+- [Dijkstra](src/lib/algorithms/ShortestPath.hpp)
+- [Bellman Ford](src/lib/algorithms/ShortestPath.hpp)
+- [Prim - MST](src/lib/algorithms/MinimumSpanningTree.hpp)
+- [Kruskal - MST](src/lib/algorithms/MinimumSpanningTree.hpp)
+- [Tarjan - Strongly Connected Components](src/lib/algorithms/StronglyConnectedComponents.hpp)
 - [Topological Sort](src/lib/Graph.hpp)
 - [Visitation Time](src/lib/Graph.hpp)
 
