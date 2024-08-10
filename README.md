@@ -200,7 +200,18 @@ The project contains a Python script that generates a graph visualization using 
 
 The Graph class contains a method that generates a JSON file containing the graph. The method is called `toJSON` and is located in the `Graph.hpp` file. 
 
-Another python script allows you to draw a graph and import it to the program. To use this script, you need to run the `draw()` method at a graph object that will automatically import the drawn graph.
+## Graph Drawer
+
+Another python script allows you to draw a graph and import it to the program. To use this script, you need to run the `draw()` method at a graph object that will automatically import the drawn graph when you close the window.
+
+### How to use the Graph Drawer
+
+- **Create vertex:** Left click on the screen to create a vertex.
+- **Create edge:** Right click on a source vertex and right click on a target vertex to create an edge.
+- **Delete vertex or edge:** Click the middle button on a vertex or edge to delete it.
+- **Move vertex:** Click and drag a vertex to move it.
+- **Change vertex label:** Press 'e' on a vertex to change its label.
+- **Change edge weight:** Press 'e' on an edge to change its weight.
 
 ## References
 
