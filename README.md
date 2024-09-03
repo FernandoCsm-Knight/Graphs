@@ -208,7 +208,7 @@ Another python script allows you to draw a graph and import it to the program. T
 
 - **Create vertex:** Left click on the screen to create a vertex.
 - **Create edge:** Right click on a source vertex and right click on a target vertex to create an edge.
-- **Delete vertex or edge:** Click the middle button on a vertex or edge to delete it.
+- **Delete vertex or edge:** Click the middle button or backspace on a vertex or edge to delete it.
 - **Move vertex:** Click and drag a vertex to move it.
 - **Change vertex label:** Press 'e' on a vertex to change its label.
 - **Change edge weight:** Press 'e' on an edge to change its weight.

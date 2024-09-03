@@ -100,11 +100,11 @@ class GraphDrawer:
 
     def delete_edge(self, pos):
         threshold = self.edge_width + 5
-        for edge in self.G.edges():
+        for edge in list(self.G.edges()):
             src_pos, dest_pos = self.G.nodes[edge[0]]['pos'], self.G.nodes[edge[1]]['pos']
             if self.point_line_distance(pos, src_pos, dest_pos) < threshold:
                 self.G.remove_edge(*edge)
-                break
+                return
 
     def add_node(self, pos):
         self.node_id += 1
@@ -171,20 +171,23 @@ class GraphDrawer:
         pygame.quit()
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            self.handle_mouse_down(event)
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.handle_mouse_up(event)
-        elif event.type == pygame.MOUSEMOTION:
-            self.handle_mouse_motion(event)
-        elif event.type == pygame.KEYUP:
-            self.handle_key_up(event)
-
-        if self.popup:
-            if self.popup.handle_event(event, self.G):
-                self.popup.update()
-            else:
+        if self.popup is not None:
+            if self.popup.collidepoint(pygame.mouse.get_pos()):
+                if self.popup.handle_event(event, self.G):
+                    self.popup.update()
+                else:
+                    self.popup = None
+            elif event.type != pygame.MOUSEMOTION:
                 self.popup = None
+        else:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_mouse_down(event)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.handle_mouse_up(event)
+            elif event.type == pygame.MOUSEMOTION:
+                self.handle_mouse_motion(event)
+            elif event.type == pygame.KEYUP:
+                self.handle_key_up(event)
 
     def handle_mouse_down(self, event):
         if self.popup is not None and self.popup.collidepoint(event.pos):
@@ -225,7 +228,7 @@ class GraphDrawer:
 
         if event.button == 1:
             self.add_node(event.pos)
-        elif event.button == 3:
+        elif event.button == 2:
             self.delete_edge(event.pos)
 
     def handle_mouse_up(self, event):
@@ -256,6 +259,18 @@ class GraphDrawer:
                 if distance < self.edge_width + 5:
                     self.popup = Popup(self.node_font, f'Edge {edge[0]}-{edge[1]}', mouse_pos, edge=edge)
                     return
+
+        elif event.key == pygame.K_BACKSPACE:
+            for node in list(self.G.nodes()):
+                pos = self.G.nodes[node]['pos']
+                mouse_pos = pygame.mouse.get_pos()
+                if (pos[0] - self.node_size <= mouse_pos[0] <= pos[0] + self.node_size and
+                    pos[1] - self.node_size <= mouse_pos[1] <= pos[1] + self.node_size):
+                    self.G.remove_node(node)
+                    self.dragging = None
+                    return
+
+            self.delete_edge(pos)
 
 class TextInput:
     def __init__(self, font, x, y, w, h, text='', father_width=100):
