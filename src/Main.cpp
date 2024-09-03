@@ -10,7 +10,7 @@
 using std::string;
 
 int main() {
-    int order = 10;
+    int order = 6;
     Graph<int> graph(GraphTypes::COMPLETE, order);
     size_t number = 0;
 

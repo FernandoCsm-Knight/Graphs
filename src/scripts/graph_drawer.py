@@ -72,7 +72,7 @@ class GraphDrawer:
             "multigraph": False,
             "vertices": [
                 {
-                    "id": node
+                    "id": self.G.nodes[node].get('label', node),
                 } for node in self.G.nodes()
             ],
             "edges": [
@@ -118,7 +118,7 @@ class GraphDrawer:
             self.G.nodes[node]['pos'] = pos
             pygame.draw.circle(self.screen, self.node_color, pos, self.node_size)
             label = data.get('label', str(node))
-            text = self.node_font.render(label, True, self.BLACK)
+            text = self.node_font.render(str(label), True, self.BLACK)
             text_rect = text.get_rect(center=pos)
             self.screen.blit(text, text_rect)
 
@@ -359,7 +359,11 @@ class Popup:
                             self.input_box.clear()
                             print('Invalid input for weight. Please enter a numeric value.')
                     elif self.node is not None:
-                        graph.nodes[self.node]['label'] = input_text.strip()
+                        element = input_text.strip()
+                        if element.isnumeric():
+                            element = int(element)
+                        
+                        graph.nodes[self.node]['label'] = element
                 
         return stay
 
