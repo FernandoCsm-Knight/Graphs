@@ -4,7 +4,7 @@ import math
 import json
 import pygame
 import networkx as nx
-from networkx.readwrite import json_graph
+import threading
 
 class GraphDrawer:
     WHITE = (238, 248, 255)
@@ -43,6 +43,11 @@ class GraphDrawer:
         self.edge_start_node = None
         self.button_clicked = False
         self.popup = None
+
+        self.running = True
+        self.clock = pygame.time.Clock()
+        self.max_fps = 60
+        self.lock = threading.Lock()
 
     def draw_arrow(self, color, start, end, arrow_size):
         dx, dy = end[0] - start[0], end[1] - start[1]
@@ -140,12 +145,11 @@ class GraphDrawer:
             self.screen.blit(weight_text, weight_rect)
 
     def run(self):
-        running = True
-        while running:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.save_graph()
-                    running = False
+                    self.running = False
                 else:
                     self.handle_event(event)
 
@@ -167,6 +171,7 @@ class GraphDrawer:
                 self.popup.draw(self.screen)
 
             pygame.display.flip()
+            self.clock.tick(self.max_fps)
 
         pygame.quit()
 
@@ -367,6 +372,11 @@ class Popup:
                 
         return stay
 
-if __name__ == '__main__':
+def run_graph():
     graph_drawer = GraphDrawer()
     graph_drawer.run()
+
+if __name__ == '__main__':
+    graph_thread = threading.Thread(target=run_graph)
+    graph_thread.start()
+    graph_thread.join() 
