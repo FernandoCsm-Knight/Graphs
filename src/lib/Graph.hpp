@@ -18,14 +18,11 @@
 #define GRAPH_HPP
 
 #include <iostream>
-#include <fstream>
-#include <cstdio>
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
 #include <limits>
 #include <string>
-#include <nlohmann/json.hpp>
 
 #include "algorithms/CycleDetection.hpp"
 #include "algorithms/StronglyConnectedComponents.hpp"
@@ -47,10 +44,12 @@
 #include "helpers/Edge.hpp"
 #include "helpers/Pair.hpp"
 #include "helpers/Path.hpp"
-#include "helpers/Vertex.hpp"
+#include "helpers/Storage.hpp"
 #include "helpers/Arithmatic.hpp"
 #include "helpers/GraphGenerator.hpp"
+#include "helpers/GraphDescriber.hpp"
 
+#include "types/GraphTypes.hpp"
 #include "types/CycleDetectionType.hpp"
 #include "types/MinimumSpanningTreeType.hpp"
 
@@ -72,39 +71,7 @@ template <class V> class Graph {
 
         Graph(const GraphTypes type, const int n = 5, const bool isDirected = false) {
             GraphGenerator<V> generator;
-            switch(type) {
-                case GraphTypes::REGULAR:
-                    *this = generator.regular(n, 2, isDirected);
-                    break;
-                case GraphTypes::COMPLETE:
-                    *this = generator.complete(n, isDirected);
-                    break;
-                case GraphTypes::BIPARTITE:
-                    if(n % 2 == 0) {
-                        *this = generator.bipartite((int)(n/2), (int)(n/2), isDirected);
-                    } else {
-                        *this = generator.bipartite((int)(n/2), (int)(n/2 - 1), isDirected);
-                    }
-
-                    break;
-                case GraphTypes::COMPLETE_BIPARTITE:
-                    *this = generator.completeBipartite(n, isDirected);
-                    break;
-                case GraphTypes::EULERIAN:
-                    *this = generator.eulerian(n, isDirected);
-                    break;
-                case GraphTypes::TREE:
-                    *this = generator.tree(n, isDirected);
-                    break;
-                case GraphTypes::FOREST:
-                    *this = generator.forest(n, isDirected);
-                    break;
-                case GraphTypes::CYCLIC:
-                    *this = generator.cyclic(n, isDirected);
-                    break;
-                default:
-                    throw std::invalid_argument("Invalid graph type.");
-            }
+            *this = generator.create(type, n, isDirected);
         }
 
         Graph(const Edge<V> edges[], const int size, const bool isDirected = false) {
@@ -141,159 +108,67 @@ template <class V> class Graph {
         inline int size() const { return adj.size(); }
         inline int sizeEdges() const { return edges.size(); }
 
-        inline Set<V> getVertices() const { return adj.keys().toSet(); }
-        inline Set<V> neighbors(const V& vertex) const { return adj.get(vertex); }
-        inline Set<Edge<V>> getEdges() const { return edges; }
+        inline ArrayList<V> vertices() const { return adj.keys(); }
+        inline Set<V> setOfVertices() const { return adj.keys().toSet(); }
+        inline Set<V> setOfNeighbors(const V& vertex) const { return adj.get(vertex); }
+        inline Set<Edge<V>> setOfEdges() const { return edges; }
         inline Map<V, Set<V>> adjacencyList() const { return adj; }
+
+        // State Methods
+
+        inline Map<V, Set<V>>& adjacency() { return adj; }
+        inline Set<Edge<V>>& edgeList() { return edges; }
+        inline Set<V>& neighbors(const V& vertex) { return adj[vertex]; }
 
         // Other Methods
 
         bool isRegular() const {
-            ArrayList<Pair<int, int>> list = this->degreeList();
-
-            bool value = true;
-            if(!directed) {
-                for(int i = 0; i < list.size() && value; ++i) 
-                    value = list[i].first() == list[0].first();
-            } else {
-                for(int i = 0; i < list.size() && value; ++i)
-                    value = list[i].first() == list[0].first() && list[i].second() == list[0].second();
-            }
-            
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isRegular();
+            delete gd;
             return value;
         }
 
         bool isComplete() const {
-            ArrayList<Pair<int, int>> list = this->degreeList();
-
-            bool value = true;
-            if(!directed) {
-                for(int i = 0; i < list.size() && value; ++i) 
-                    value = list[i].first() == list.size() - 1;
-            } else {
-                for(int i = 0; i < list.size() && value; ++i)
-                    value = list[i].first() == list.size() - 1 && list[i].second() == list.size() - 1;
-            }
-
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isComplete();
+            delete gd;
             return value;
         }
 
         bool isBipartite() const {
-            Map<V, bool> color;
-            Map<V, bool> visited;
-            bool value = true;
-
-            ArrayList<V> vertices = adj.keys();
-            for(const V& vertex : vertices) {
-                color[vertex] = false;
-                visited[vertex] = false;
-            }
-
-            Stack<V> stack;
-            for(int i = 0; i < this->size() && value; ++i) {
-                if(!visited[i]) {
-
-                    stack.push(vertices[i]);
-                    while(!stack.isEmpty() && value) {
-                        V u = stack.pop();
-
-                        visited[u] = true;
-                        for(V v : adj.get(u)) {
-                            if(!visited[v]) {
-                                color[v] = !color[u];
-                                stack.push(v);
-                            } else if(color[v] == color[u]) {
-                                value = false;
-                            }
-                        }
-                    }
-                } 
-            }
-            
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isBipartite();
+            delete gd;
             return value;
         }
 
         bool isTree() const {
-            ArrayList<V> vertices = adj.keys();
-            UnionFind<V> uf(vertices);
-
-            for(Edge<V> e : edges) 
-                uf.unify(e.getSource(), e.getDestination());
-
-            return uf.numberOfComponents() == 1 && edges.size() == this->size() - 1;
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isTree();
+            delete gd;
+            return value;
         }
 
         bool isForest() const {
-            ArrayList<V> vertices = adj.keys();
-            UnionFind<V> uf(vertices);
-
-            for(Edge<V> e : edges) 
-                uf.unify(e.getSource(), e.getDestination());
-
-            return edges.size() == this->size() - uf.numberOfComponents();
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isForest();
+            delete gd;
+            return value;
         }
 
         bool isCyclic() const {
-            ArrayList<V> vertices = adj.keys();
-            Map<V, V> parent;
-            Map<V, char> visited;
-            for(const V& vertex : vertices) visited[vertex] = 'w';
-            
-            Stack<V> stack;
-            for(const V& vertex : vertices) {
-                if(visited[vertex] == 'w') {
-                    stack.push(vertex);
-                    parent[vertex] = vertex;
-                }
-
-                while(!stack.isEmpty()) {
-                    bool done = true;
-                    V v = stack.peek();
-                    if(visited[v] == 'w') visited[v] = 'g';
-
-                    for(V u : adj.get(v)) {
-                        if(u != parent[v]) {
-                            if(visited[u] == 'w') {
-                                stack.push(u);
-                                parent[u] = v;
-                                done = false;
-                                break;
-                            } else if(visited[u] == 'g') {
-                                return true;
-                            } 
-                        }
-                    }
-
-                    if(done) visited[stack.pop()] = 'b';
-                }
-            }
-
-            return false;
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isCyclic();
+            delete gd;
+            return value;
         }
 
         bool isEulerian() const {
-            ArrayList<Pair<int, int>> list = degreeList();
-
-            if(directed) {
-                bool value = true;
-                int j = 0, k = 0;
-                for(int i = 0; i < list.size() && value; ++i) {
-                    value = list[i].first() - list[i].second() <= 1 || list[i].second() - list[i].first() <= 1;
-                    
-                    if(value) {
-                        if(list[i].first() - list[i].second() == 1) ++j;
-                        if(list[i].second() - list[i].first() == 1) ++k;
-                    }
-                }
-
-                return value && ((j == 1 && k == 1) || (j == 0 && k == 0));
-            }
-
-            int j = 0;
-            for(int i = 0; i < list.size(); ++i) 
-                if(list[i].first() % 2 != 0) ++j;
-
-            return j == 2 || j == 0;
+            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
+            bool value = gd->isEulerian();
+            delete gd;
+            return value;
         }
 
         Pair<int, int> degree(const V& vertex) const {
@@ -642,110 +517,19 @@ template <class V> class Graph {
         }
 
         void import(const std::string& fileName, bool customPath = false) {
-            std::ifstream file(customPath ? fileName : ("data/" + fileName));
-            if (!file.is_open()) 
-                throw std::invalid_argument("Failed to open file: " + fileName);
-
-            std::string jsonString;
-            std::string line;
-            while (std::getline(file, line)) 
-                jsonString += line;
-
-            nlohmann::json data = nlohmann::json::parse(jsonString);
-
-            adj.clear();
-            edges.clear();
-            directed = data["directed"];
-
-                std::cout << data["vertices"] << std::endl;
-            for (const auto& vertex : data["vertices"]) {
-                V v = vertex["id"].get<V>();
-                addVertex(v);
-            }
-
-            for (const auto& link : data["edges"]) {
-                V source = link["source"].get<V>();
-                V target = link["target"].get<V>();
-                double weight = link["weight"].get<double>();
-                addEdge(source, target, weight);
-            }
+            storage::import(*this, fileName, customPath);
         }
 
-        void exportJSON(const std::string& fileName, bool customPath = false) const {
-            nlohmann::json data;
-            data["directed"] = directed;
-            data["multigraph"] = false;
-
-            nlohmann::json vertices = nlohmann::json::array();
-
-            for (const V& vertex : adj.keys()) {
-                nlohmann::json node;
-                node["id"] = vertex;
-                vertices.push_back(node);
-            }
-
-            nlohmann::json links = nlohmann::json::array();
-
-            for (const Edge<V>& edge : edges) {
-                nlohmann::json link;
-                link["source"] = edge.getSource();
-                link["target"] = edge.getDestination();
-                link["weight"] = edge.getWeight();
-                links.push_back(link);
-            }
-
-            data["edges"] = links;
-            std::string json =  data.dump(4); 
-
-            std::ofstream file(customPath ? fileName : ("data/" + fileName));
-            if (!file.is_open()) {
-                std::cout << "Failed to open file: " << fileName << std::endl;
-            } else {
-                file << json;
-                file.close();
-            }
+        void exportJSON(const std::string& fileName, bool customPath = false) {
+            storage::exportJSON(*this, fileName, customPath);
         }
 
-        void plot(std::string pngFileName = "", bool showInAWindow = false) const {
-            if (!pngFileName.empty() && !pngFileName.ends_with(".png")) {
-                pngFileName = pngFileName.substr(0, pngFileName.find_last_of('.')) + ".png";
-            }
-            
-            std::string filename = "tmp/toPlot.json";
-            exportJSON(filename, true);
-            std::cout << "Graph exported to " << filename << std::endl;
-
-            std::string command = "python src/scripts/graph_visualizer.py ";
-            command += filename;
-            command += (showInAWindow ? " true " : " false ");
-            command += pngFileName;
-            int result = std::system(command.c_str());
-            if (result == 0) {
-                std::cout << "Graph image generated successfully." << std::endl;
-            } else {
-                std::cout << "Failed to generate graph image." << std::endl;
-            }
-
-            std::remove(filename.c_str());
+        void plot(std::string pngFileName = "", bool showInAWindow = false) {
+            storage::plot(*this, pngFileName, showInAWindow);
         }
 
         void draw() {
-            std::string command = "python src/scripts/graph_drawer.py";
-            int result = std::system(command.c_str());
-            if (result == 0) {
-                std::cout << "Graph drawer executed successfully." << std::endl;
-            } else {
-                std::cout << "Failed to execute drawer." << std::endl;
-            }
-        
-            try {
-                import("tmp/importable.json", true);
-                std::cout << "Graph imported successfully!" << std::endl;
-            } catch (const std::exception& e) {
-                std::cout << "No graph to import!" << std::endl;
-            }
-
-            std::remove("tmp/importable.json");
+            storage::draw(*this);
         }
 
         friend std::ostream& operator<<(std::ostream& strm, const Graph<V>& graph) {

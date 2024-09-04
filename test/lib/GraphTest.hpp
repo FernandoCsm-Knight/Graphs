@@ -76,12 +76,12 @@ public:
     }
 
     void verticesTest() {
-        bool passed = graph.getVertices().size() == 13;
+        bool passed = graph.size() == 13;
         logResult("Vertices Test", passed);
     }
 
     void edgesTest() {
-        bool passed = graph.getEdges().size() == 19;
+        bool passed = graph.sizeEdges() == 19;
         logResult("Edges Test", passed);
     }
 

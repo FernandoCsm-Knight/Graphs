@@ -86,7 +86,7 @@ class GraphDrawer:
                 {
                     "source": u,
                     "target": v,
-                    "weight": self.G[u][v].get('weight', 1.0)
+                    "weight": self.G[u][v].get('weight', 0.0)
                 } for u, v in self.G.edges()
             ]
         }

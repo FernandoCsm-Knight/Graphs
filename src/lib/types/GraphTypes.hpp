@@ -12,6 +12,7 @@
  * - TREE: A tree.
  * - FOREST: A forest.
  * - CYCLIC: A cyclic graph.
+ * - RANDOM: A random graph.
  */
 enum GraphTypes {
     REGULAR,
@@ -22,6 +23,7 @@ enum GraphTypes {
     TREE,
     FOREST,
     CYCLIC,
+    RANDOM,
 };
 
 #endif

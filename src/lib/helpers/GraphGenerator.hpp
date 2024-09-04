@@ -63,7 +63,9 @@ template <art::Numeric T> class GraphGenerator {
             for (int i = 0; i < n; ++i) {
                 for (int j = 0; j < n; ++j) {
                     if (i != j) {
-                        graph.addEdge(i, j);
+                        if(directed || !graph.contains(Edge<T>(j, i))) {
+                            graph.addEdge(i, j);
+                        }
                     }
                 }
             }
@@ -210,6 +212,83 @@ template <art::Numeric T> class GraphGenerator {
             }
             return graph;
         }
+
+        /**
+         * @brief Generates a random graph. The random graph will only be generated
+         * if the graph type is Numeric.
+         * 
+         * @param n the number of vertices in the graph.
+         * @param p the probability of an edge between two vertices.
+         * @param directed whether the graph is directed or not.
+         * @return Graph<T> the generated graph.
+         */
+        Graph<T> random(int n, double p, bool directed = false) {
+            if (n <= 0 || p < 0 || p > 1) {
+                throw std::invalid_argument("Invalid parameters for random graph.");
+            }
+
+            Graph<T> graph(directed);
+            for (int i = 0; i < n; ++i) {
+                for (int j = i + 1; j < n; ++j) {
+                    if ((double)rand() / RAND_MAX <= p) {
+                        graph.addEdge(i, j);
+                    }
+                }
+            }
+            return graph;
+        }
+
+        /**
+         * @brief Creates a graph of a given type.
+         * 
+         * @param type the type of graph to generate.
+         * @param n the number of vertices in the graph.
+         * @param directed whether the graph is directed or not.
+         * @return Graph<T> the generated graph.
+         */
+        Graph<T> create(const GraphTypes type, const int n, const bool directed = false) {
+            Graph<T> graph(directed);
+
+            switch(type) {
+                case GraphTypes::REGULAR:
+                    graph = this->regular(n, 2, directed);
+                    break;
+                case GraphTypes::COMPLETE:
+                    graph = this->complete(n, directed);
+                    break;
+                case GraphTypes::BIPARTITE:
+                    if(n % 2 == 0) {
+                        graph = this->bipartite((int)(n/2), (int)(n/2), directed);
+                    } else {
+                        graph = this->bipartite((int)(n/2), (int)(n/2 - 1), directed);
+                    }
+
+                    break;
+                case GraphTypes::COMPLETE_BIPARTITE:
+                    graph = this->completeBipartite(n, directed);
+                    break;
+                case GraphTypes::EULERIAN:
+                    graph = this->eulerian(n, directed);
+                    break;
+                case GraphTypes::TREE:
+                    graph = this->tree(n, directed);
+                    break;
+                case GraphTypes::FOREST:
+                    graph = this->forest(n, directed);
+                    break;
+                case GraphTypes::CYCLIC:
+                    graph = this->cyclic(n, directed);
+                    break;
+                case GraphTypes::RANDOM:
+                    graph = this->random(n, 0.5, directed);
+                    break;
+                default:
+                    throw std::invalid_argument("Invalid graph type.");
+            }
+
+            return graph;
+        }
+
 };
 
 #endif
