@@ -14,7 +14,8 @@ template <typename T> class Graph;
 
 namespace storage {
     template <typename V> void import(Graph<V>& graph, const std::string& fileName, bool customPath = false) {
-        std::ifstream file(customPath ? fileName : ("data/" + fileName));
+        std::string filePath = fileName.ends_with(".json") ? fileName : fileName + ".json";
+        std::ifstream file(customPath ? filePath : ("data/" + filePath));
         if (!file.is_open()) 
             throw std::invalid_argument("Failed to open file: " + fileName);
 
@@ -59,6 +60,7 @@ namespace storage {
             vertices.push_back(node);
         }
 
+        data["vertices"] = vertices;
         nlohmann::json links = nlohmann::json::array();
 
         for (const Edge<V>& edge : graph.edgeList()) {
@@ -105,6 +107,8 @@ namespace storage {
     }
 
     template <typename V> void draw(Graph<V>& graph) {
+        if (graph.size() != 0) exportJSON(graph, "tmp/importable.json", true);
+        
         std::string command = "python src/scripts/graph_drawer.py";
         int result = std::system(command.c_str());
         if (result == 0) {

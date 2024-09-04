@@ -92,6 +92,47 @@ class GraphDrawer:
         }
         with open(filename, 'w') as f:
             json.dump(data, f, indent=2)
+            
+    def import_graph(self, filename='tmp/importable.json'):
+        try:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+                
+            self.G.clear()
+
+            self.is_directed = data.get('directed', False)
+            self.G = nx.DiGraph() if self.is_directed else nx.Graph()
+
+            for vertex in data['vertices']:
+                node_id = vertex['id']
+                self.G.add_node(node_id)
+
+            for edge in data['edges']:
+                source = edge['source']
+                target = edge['target']
+                weight = edge.get('weight', 0.0)
+                self.G.add_edge(source, target, weight=weight)
+
+            layout = nx.spring_layout(self.G)
+            width, height = self.screen.get_size()
+            
+            max_x = max(pos[0] for pos in layout.values())
+            min_x = min(pos[0] for pos in layout.values())
+            max_y = max(pos[1] for pos in layout.values())
+            min_y = min(pos[1] for pos in layout.values())
+
+            scale_x = (width - 2 * self.node_size) / (max_x - min_x)
+            scale_y = (height - 2 * self.node_size) / (max_y - min_y)
+
+            for node, pos in layout.items():
+                x = int((pos[0] - min_x) * scale_x + self.node_size)
+                y = int((pos[1] - min_y) * scale_y + self.node_size)
+                self.G.nodes[node]['pos'] = (x, y)
+
+            print(f"Graph imported successfully from {filename}")
+
+        except Exception as e:
+            print(f"Error importing graph from {filename}: {e}")
 
     def toggle_graph_type(self):
         self.is_directed = not self.is_directed
