@@ -5,6 +5,7 @@
 #include "../datastructs/Set.hpp"
 #include "../datastructs/Stack.hpp"
 
+#include "../helpers/Pair.hpp"
 #include "../helpers/Path.hpp"
 
 template <class V> class Graph;
@@ -12,33 +13,46 @@ template <class V> class Graph;
 template <class V> class DepthFirstSearch {
     private:
         const Map<V, Set<V>> adj;
+        Map<V, Pair<int, int>> map;
+        ArrayList<V> clp;
 
     public:
         explicit DepthFirstSearch(const Graph<V>& graph): adj(graph.adjacencyList()) {}
 
-        Path<V> dfs(const V& vertex) const {
-            if(!adj.contains(vertex)) 
-                throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
+        inline ArrayList<V> clasp() const { return this->clp; }
+        inline Map<V, Pair<int, int>> times() const { return this->map; }
 
-            Path<V> path;
-            Stack<V> stack;
+        void calculate(const V& vertex) {
             Set<V> visited;
-            
+            map.clear();
+            clp.clear();
+
+            Stack<V> stack;
             stack.push(vertex);
             visited.add(vertex);
-            while(!stack.isEmpty()) {
-                V v = stack.pop();
-                path.add(v);
 
+            int time = 0;
+            while(!stack.isEmpty()) {
+                V v = stack.peek();
+                clp.add(v);
+                
+                if(!map.contains(v))
+                    map.put(v, Pair<int, int>(++time));
+
+                bool done = true;
                 for(V u : adj.get(v)) {
                     if(!visited.contains(u)) {
-                        visited.add(u);
                         stack.push(u);
+                        visited.add(u);
+                        done = false;
                     }
                 }
-            }
 
-            return path;
+                if(done) {
+                    stack.pop();
+                    map[v].second() = ++time;
+                }
+            }
         }
 };
 

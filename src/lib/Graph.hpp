@@ -319,9 +319,9 @@ template <class V> class Graph {
         }
 
         Path<V> depthFirstSearch(const V& vertex) const {
-            DepthFirstSearch<V> *dfs = new DepthFirstSearch<V>(*this);
-            Path<V> path = dfs->dfs(vertex);
-            delete dfs;
+            Path<V> path;
+            ArrayList<V> clp = this->clasp(vertex, '+');
+            for(const V& v : clp) path.add(v);
             return path;
         }
 
@@ -438,20 +438,10 @@ template <class V> class Graph {
 
             ArrayList<V> clp;
             if(type == '+') {
-                Stack<V> stack;
-                stack.push(vertex);
-
-                Set<V> visited;
-                ArrayList<V> vertices = adj.keys();
-                while(!stack.isEmpty()) {
-                    V u = stack.pop();
-                    visited.add(u);
-                    clp.add(u);
-
-                    for(V v : adj.get(u)) 
-                        if(!visited.contains(v)) 
-                            stack.push(v);
-                }
+                DepthFirstSearch<V> *dfs = new DepthFirstSearch<V>(*this);
+                dfs->calculate(vertex);
+                clp = dfs->clasp();
+                delete dfs;
             } else {
                 Graph<V> tmp(*this);
                 tmp.transpose();
@@ -462,36 +452,10 @@ template <class V> class Graph {
         }
 
         Map<V, Pair<int, int>> times(const V& vertex) const {
-            ArrayList<V> vertices = adj.keys();
-            Map<V, Pair<int, int>> map;
-            Set<V> visited;
-
-            Stack<V> stack;
-            stack.push(vertex);
-            visited.add(vertex);
-
-            int time = 0;
-            while(!stack.isEmpty()) {
-                V v = stack.peek();
-                
-                if(!map.contains(v))
-                    map.put(v, Pair<int, int>(++time));
-
-                bool done = true;
-                for(V u : adj.get(v)) {
-                    if(!visited.contains(u)) {
-                        stack.push(u);
-                        visited.add(u);
-                        done = false;
-                    }
-                }
-
-                if(done) {
-                    stack.pop();
-                    map[v].second() = ++time;
-                }
-            }
-
+            DepthFirstSearch<V> *dfs = new DepthFirstSearch<V>(*this);
+            dfs->calculate(vertex);
+            Map<V, Pair<int, int>> map = dfs->times();
+            delete dfs;
             return map;
         }
 
