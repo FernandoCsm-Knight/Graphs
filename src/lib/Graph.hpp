@@ -464,9 +464,11 @@ template <class V> class Graph {
         Map<V, Pair<int, int>> times(const V& vertex) const {
             ArrayList<V> vertices = adj.keys();
             Map<V, Pair<int, int>> map;
+            Set<V> visited;
 
             Stack<V> stack;
             stack.push(vertex);
+            visited.add(vertex);
 
             int time = 0;
             while(!stack.isEmpty()) {
@@ -477,8 +479,9 @@ template <class V> class Graph {
 
                 bool done = true;
                 for(V u : adj.get(v)) {
-                    if(!map.contains(u)) {
+                    if(!visited.contains(u)) {
                         stack.push(u);
+                        visited.add(u);
                         done = false;
                     }
                 }
