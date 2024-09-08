@@ -280,7 +280,7 @@ template <art::Numeric T> class GraphGenerator {
                     graph = this->cyclic(n, directed);
                     break;
                 case GraphTypes::RANDOM:
-                    graph = this->random(n, 0.5, directed);
+                    graph = this->random(n, 0.25, directed);
                     break;
                 default:
                     throw std::invalid_argument("Invalid graph type.");

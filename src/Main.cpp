@@ -3,7 +3,7 @@
 
 #include "lib/datastructs/IndexedPriorityQueue.hpp"
 #include "lib/helpers/Arithmatic.hpp"
-#include "lib/helpers/StopWatch.hpp"
+#include "lib/helpers/Stopwatch.hpp"
 #include "lib/helpers/Path.hpp"
 #include "lib/Graph.hpp"
 
