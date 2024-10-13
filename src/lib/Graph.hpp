@@ -27,6 +27,7 @@
 #include "algorithms/CycleDetection.hpp"
 #include "algorithms/StronglyConnectedComponents.hpp"
 #include "algorithms/ShortestPath.hpp"
+#include "algorithms/WidestPath.hpp"
 #include "algorithms/MinimumSpanningTree.hpp"
 #include "algorithms/DepthFirstSearch.hpp"
 #include "algorithms/BreathFirstSearch.hpp"
@@ -351,6 +352,34 @@ template <class V> class Graph {
                 throw std::invalid_argument("The given vertices do not exist in the graph.");
 
             return this->shortestPath(src)[dest];
+        }
+
+        Map<V, Path<V>> widestPath(const V& vertex) const {
+            WidestPath<V> *wp = new WidestPath<V>(*this);
+            Map<V, Path<V>> map = wp->widestPath(vertex);
+            delete wp;
+            return map;
+        }
+
+        Path<V> widestPath(const V& src, const V& dest) const {
+            if(!adj.contains(src) || !adj.contains(dest)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            return this->widestPath(src)[dest];
+        }
+
+        Map<V, Path<V>> narrrowestPath(const V& vertex) const {
+            WidestPath<V> *wp = new WidestPath<V>(*this);
+            Map<V, Path<V>> map = wp->narrrowestPath(vertex);
+            delete wp;
+            return map;
+        }
+
+        Path<V> narrrowestPath(const V& src, const V& dest) const {
+            if(!adj.contains(src) || !adj.contains(dest)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            return this->narrrowestPath(src)[dest];
         }
 
         Map<V, Map<V, double>> allDistances() const {

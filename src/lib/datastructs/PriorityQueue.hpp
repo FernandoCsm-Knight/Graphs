@@ -18,7 +18,11 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "Heap.hpp"
+#include "MaxHeap.hpp"
 #include "MinHeap.hpp"
+
+#include "../types/HeapType.hpp"
 
 /**
  * @brief A template class implementing a priority queue data structure.
@@ -27,9 +31,35 @@
  */
 template <class T> class PriorityQueue {
     private:
-        MinHeap<T> heap; ///< The minimum heap used to store the elements.
+        Heap<T>* heap;  ///< Pointer to a heap (either MinHeap or MaxHeap).
+        HeapType type;  ///< The type of heap (MinHeap or MaxHeap).
 
     public:
+
+        /**
+         * @brief Default constructor that initializes the priority queue as a MinHeap.
+         */
+        PriorityQueue() : PriorityQueue(HeapType::MIN) {}
+
+        /**
+         * @brief Construct a new PriorityQueue object with a specified heap type.
+         * 
+         * @param heapType The type of heap to use (MinHeap or MaxHeap).
+         */
+        PriorityQueue(HeapType heapType) : type(heapType) {
+            if (heapType == HeapType::MIN) {
+                heap = new MinHeap<T>();
+            } else {
+                heap = new MaxHeap<T>();
+            }
+        }
+
+        /**
+         * @brief Destructor to clean up heap memory.
+         */
+        ~PriorityQueue() {
+            delete heap;
+        }
 
         /**
          * @brief Add a new element to the priority queue.
@@ -37,7 +67,7 @@ template <class T> class PriorityQueue {
          * @param element The element to be added to the priority queue.
          */
         void push(const T& element) {
-            this->heap.add(element);
+            this->heap->add(element);
         }
 
         /**
@@ -46,7 +76,7 @@ template <class T> class PriorityQueue {
          * @return T The removed element.
          */
         T poll() {
-            return this->heap.pop();
+            return this->heap->pop();
         }
 
         /**
@@ -55,7 +85,7 @@ template <class T> class PriorityQueue {
          * @return T The element with the highest priority.
          */
         T peek() const {
-            return this->heap.min();
+            return this->heap->min();
         }
 
         /**
@@ -64,7 +94,7 @@ template <class T> class PriorityQueue {
          * @return int The number of elements in the priority queue.
          */
         int size() const {
-            return this->heap.size();
+            return this->heap->size();
         }
 
         /**
@@ -73,7 +103,16 @@ template <class T> class PriorityQueue {
          * @return True if the priority queue is empty, false otherwise.
          */
         bool isEmpty() const {
-            return this->heap.isEmpty();
+            return this->heap->isEmpty();
+        }
+
+        /**
+         * @brief Get the type of the priority queue.
+         * 
+         * @return HeapType The type of the priority queue.
+         */
+        HeapType getType() const {
+            return this->type;
         }
 
         /**

@@ -1,0 +1,61 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "vertices": [
+    {
+      "id": 1
+    },
+    {
+      "id": 2
+    },
+    {
+      "id": 3
+    },
+    {
+      "id": 4
+    },
+    {
+      "id": 5
+    },
+    {
+      "id": 6
+    }
+  ],
+  "edges": [
+    {
+      "source": 1,
+      "target": 2,
+      "weight": 3.0
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "weight": 1.0
+    },
+    {
+      "source": 1,
+      "target": 5,
+      "weight": 2.0
+    },
+    {
+      "source": 2,
+      "target": 4,
+      "weight": 5.0
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "weight": 7.0
+    },
+    {
+      "source": 2,
+      "target": 6,
+      "weight": 4.0
+    },
+    {
+      "source": 5,
+      "target": 6,
+      "weight": 8.0
+    }
+  ]
+}

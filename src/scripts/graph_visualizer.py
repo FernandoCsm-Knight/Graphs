@@ -42,8 +42,8 @@ def visualize_graph(json_file, show_in_a_window, png_file_name):
     for edge in data['edges']:
         G.add_edge(edge['source'], edge['target'], weight=edge['weight'])
 
-    plt.figure(figsize=(6, 6))
-    pos = nx.kamada_kawai_layout(G)
+    plt.figure(figsize=(4, 4))
+    pos = nx.spring_layout(G)
     nx.draw(G, pos, node_size=500, node_color='lightblue', with_labels=True, font_weight='bold')
     edge_weights = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels={k: (v if v != 0.0 else '') for k, v in edge_weights.items()})
