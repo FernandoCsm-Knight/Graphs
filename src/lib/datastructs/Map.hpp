@@ -123,9 +123,9 @@ template <class K, class V> class Map {
          * @return V The value associated with the given key.
          * @throw std::runtime_error if the key is not found in the map.
          */
-        V get(K key) const {
+        const V& get(K key) const {
             Pair<K, V> element = Pair<K, V>(key);
-            V value = tree.search(element)->value;
+            const V& value = tree.search(element)->value;
             return value;
         }
 

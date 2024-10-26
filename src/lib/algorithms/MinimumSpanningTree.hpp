@@ -16,13 +16,12 @@ template <class V> class Graph;
 template <class V> class MinimumSpanningTree {
     private:
         const Graph<V>& graph;
-        const Map<V, Set<V>> adj;
 
     public:
-        explicit MinimumSpanningTree(const Graph<V>& graph) : graph(graph), adj(graph.adjacencyList()) {}
+        explicit MinimumSpanningTree(const Graph<V>& graph) : graph(graph) {}
 
         Path<Edge<V>> kruskal() const {
-            UnionFind<V> uf(adj.keys());
+            UnionFind<V> uf(graph.vertices());
             Path<Edge<V>> path;
             
             ArrayList<Edge<V>> edges(std::function<int(const Edge<V>&, const Edge<V>&)>([&](const Edge<V>& edge1, const Edge<V>& edge2) {
@@ -36,8 +35,8 @@ template <class V> class MinimumSpanningTree {
             edges.sort();
 
             for(const Edge<V>& edge : edges) {
-                V u = edge.getSource();
-                V v = edge.getDestination();
+                const V& u = edge.getSource();
+                const V& v = edge.getDestination();
 
                 if(!uf.connected(u, v)) {
                     uf.unify(u, v);
@@ -50,7 +49,7 @@ template <class V> class MinimumSpanningTree {
 
         Path<Edge<V>> prim() const {
             IndexedPriorityQueue<Pair<double, Edge<V>>> queue(graph.size());
-            ArrayList<V> vertices = adj.keys();
+            ArrayList<V> vertices = graph.vertices();
             bool visited[graph.size()];
             Path<Edge<V>> path;
 
@@ -64,8 +63,8 @@ template <class V> class MinimumSpanningTree {
                 Pair<double, Edge<V>> pair = queue.poll();
                 path.add(pair.second(), pair.first());
 
-                V u = pair.second().getDestination();
-                for(V w : adj.get(u)) {
+                const V& u = pair.second().getDestination();
+                for(const V& w : graph[u]) {
                     int indexW = vertices.indexOf(w, true);
                 
                     if(!visited[indexW]) {

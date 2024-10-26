@@ -11,16 +11,16 @@ template <class V> class Graph;
 
 template <class V> class BreathFirstSearch {
     private:
-        const Map<V, Set<V>> adj;
+        const Graph<V>& graph;
 
     public:
-        explicit BreathFirstSearch(const Graph<V>& graph): adj(graph.adjacencyList()) {}
+        explicit BreathFirstSearch(const Graph<V>& graph): graph(graph) {}
 
         Path<V> bfs(const V& vertex) const {
-            if(!adj.contains(vertex))
+            if(!graph.contains(vertex))
                 throw std::invalid_argument("The given vertex doesn't belongs to the current graph.");
 
-            ArrayList<V> vertices = adj.keys();
+            ArrayList<V> vertices = graph.vertices();
             Set<V> visited;
 
             Path<V> path;
@@ -31,7 +31,7 @@ template <class V> class BreathFirstSearch {
                 V v = queue.pop();
                 path.add(v);
 
-                for(V u : adj.get(v)) {
+                for(const V& u : graph[v]) {
                     if(!visited.contains(u)) {
                         visited.add(u);
                         queue.push(u);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib> 
+#include <chrono>
 
 #include "lib/datastructs/IndexedPriorityQueue.hpp"
 #include "lib/datastructs/MaxHeap.hpp"
@@ -25,8 +26,17 @@ int main() {
     graph.addEdge(3, 2, 2.0);
     graph.addEdge(5, 4, 8.0);
 
-    std::cout << graph << std::endl;
+    ArrayList<int> set;
+    set.add(0);
+    set.add(1);
+    set.add(2);
+    set.add(3);
 
+    std::cout << graph << std::endl;
+    std::cout << graph.induce(set) << std::endl;
+
+    Stopwatch sw("Dijkstra's Algorithm", Period::MICROSECONDS);
+    sw.start();
     std::cout << "Shortest path weights: " << std::endl;
     std::cout << graph.shortestPath(0) << std::endl;
 
@@ -35,5 +45,6 @@ int main() {
 
     std::cout << "Narrrowest path weights: " << std::endl;
     std::cout << graph.narrrowestPath(0) << std::endl;
+    std::cout << "Execution time: " << sw.stop() << " mis" << std::endl;
     return 0;
 }

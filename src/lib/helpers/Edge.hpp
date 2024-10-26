@@ -84,14 +84,14 @@ template <class V> class Edge {
          * 
          * @return The source vertex of the edge.
          */
-        inline V getSource() const { return this->src; }
+        const V& getSource() const { return this->src; }
 
         /** 
          * @brief Gets the destination vertex of the edge.
          * 
          * @return The destination vertex of the edge.
          */
-        inline V getDestination() const { return this->dest; }
+        const V& getDestination() const { return this->dest; }
 
         /**
          * @brief Gets the weight of the edge.

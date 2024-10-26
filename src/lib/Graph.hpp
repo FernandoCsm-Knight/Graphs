@@ -36,7 +36,6 @@
 #include "datastructs/Map.hpp"
 #include "datastructs/Queue.hpp"
 #include "datastructs/Stack.hpp"
-#include "datastructs/Queue.hpp"
 #include "datastructs/Set.hpp"
 #include "datastructs/PriorityQueue.hpp"
 #include "datastructs/IndexedPriorityQueue.hpp"
@@ -61,30 +60,38 @@
  */
 template <class V> class Graph {
     private:
+        GraphDescriber<V> *gd = nullptr; ///< The graph describer object.
         Map<V, Set<V>> adj; ///< The adjacency list of the graph.
         Set<Edge<V>> edges; ///< The edge list of the graph.
-        bool directed = false; ///< Indicates whether the graph is directed.
+        bool directed; ///< Indicates whether the graph is directed.
+        Map<V, Graph<V>> hyper; ///< The hyper vertices of the graph.
 
     public:
         // Constructors & Destructor
 
-        Graph(bool isDirected = false): directed(isDirected) {}
+        Graph(bool digraph = false) {
+            this->directed = digraph;
+            this->gd = new GraphDescriber<V>(*this);
+        }
 
-        Graph(const GraphTypes type, const int n = 5, const bool isDirected = false) {
+        Graph(const GraphTypes type, const int n = 5, const bool digraph = false) {
             GraphGenerator<V> generator;
-            *this = generator.create(type, n, isDirected);
+            *this = generator.create(type, n, digraph);
+            this->directed = digraph;
+            this->gd = new GraphDescriber<V>(*this);
         }
 
-        Graph(const Edge<V> edges[], const int size, const bool isDirected = false) {
-            for (int i = 0; i < size; ++i) 
-                this->addEdge(edges[i]);
-
-            directed = isDirected;
+        Graph(const Graph<V>& other) {
+            this->adj = other.adj;
+            this->edges = other.edges;
+            if(this->gd != nullptr) delete this->gd;
+            this->directed = other.directed;
+            this->gd = new GraphDescriber<V>(*this);
         }
 
-        Graph(const Graph<V>& other): adj(other.adj), edges(other.edges), directed(other.directed) {}
-
-        ~Graph() {}
+        ~Graph() {
+            delete gd;
+        }
 
         // Operators
 
@@ -107,70 +114,27 @@ template <class V> class Graph {
         inline bool isEmpty() const { return adj.size() == 0; }
         inline bool isDigraph() const { return directed; }
         inline int size() const { return adj.size(); }
-        inline int sizeEdges() const { return edges.size(); }
+        inline int edgeCount() const { return edges.size(); }
 
         inline ArrayList<V> vertices() const { return adj.keys(); }
-        inline Set<V> setOfVertices() const { return adj.keys().toSet(); }
-        inline Set<V> setOfNeighbors(const V& vertex) const { return adj.get(vertex); }
-        inline Set<Edge<V>> setOfEdges() const { return edges; }
-        inline Map<V, Set<V>> adjacencyList() const { return adj; }
+        inline const Set<V>& neighbors(const V& vertex) const { return adj[vertex]; }
+        inline const Set<Edge<V>>& setOfEdges() const { return edges; }
+        inline const Map<V, Set<V>>& adjacencyList() const { return adj; }
 
         // State Methods
 
         inline Map<V, Set<V>>& adjacency() { return adj; }
         inline Set<Edge<V>>& edgeList() { return edges; }
-        inline Set<V>& neighbors(const V& vertex) { return adj[vertex]; }
 
         // Other Methods
 
-        bool isRegular() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isRegular();
-            delete gd;
-            return value;
-        }
-
-        bool isComplete() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isComplete();
-            delete gd;
-            return value;
-        }
-
-        bool isBipartite() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isBipartite();
-            delete gd;
-            return value;
-        }
-
-        bool isTree() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isTree();
-            delete gd;
-            return value;
-        }
-
-        bool isForest() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isForest();
-            delete gd;
-            return value;
-        }
-
-        bool isCyclic() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isCyclic();
-            delete gd;
-            return value;
-        }
-
-        bool isEulerian() const {
-            GraphDescriber<V> *gd = new GraphDescriber<V>(*this);
-            bool value = gd->isEulerian();
-            delete gd;
-            return value;
-        }
+        inline bool isRegular() const { return gd->isRegular(); }
+        inline bool isComplete() const { return gd->isComplete(); }
+        inline bool isBipartite() const { return gd->isBipartite(); }
+        inline bool isTree() const { return gd->isTree(); }
+        inline bool isForest() const { return gd->isForest(); }
+        inline bool isCyclic() const { return gd->isCyclic(); }
+        inline bool isEulerian() const { return gd->isEulerian(); }
 
         Pair<int, int> degree(const V& vertex) const {
             if(!directed) return Pair<int, int>(adj.get(vertex).size());
@@ -201,7 +165,7 @@ template <class V> class Graph {
                 ArrayList<V> vertices = adj.keys();
                 UnionFind<V> uf(vertices);
 
-                for(Edge<V> e : edges) 
+                for(const Edge<V>& e : edges) 
                     uf.unify(e.getSource(), e.getDestination());
                 
                 cc = uf.numberOfComponents();
@@ -225,9 +189,9 @@ template <class V> class Graph {
                 ArrayList<V> vertices = adj.keys();
                 for(int i = 0; i < vertices.size(); i++) {
                     V u = vertices[i];
-                    Set<V> set = tmp.get(u);
+                    const Set<V>& set = tmp.get(u);
                     
-                    for(V v : set) {
+                    for(const V& v : set) {
                         this->removeEdge(u, v);
                         this->addEdge(v, u);
                     }
@@ -296,7 +260,7 @@ template <class V> class Graph {
             }
         }
 
-        ArrayList<ArrayList<V>> cycles(const CycleDetectionType type = CycleDetectionType::WALK, const bool isomorphic = true) const {
+        ArrayList<ArrayList<V>> cycles(const CycleDetectionType type = CycleDetectionType::WALK, bool isomorphic = true) const {
             ArrayList<ArrayList<V>> arr;
             CycleDetection<V> *cd = new CycleDetection(*this);
 
@@ -414,6 +378,74 @@ template <class V> class Graph {
             return path;
         }
 
+        Graph<V> induce(const ArrayList<V>& set) const {
+            Graph<V> induced(directed);
+            for(const V& v : set) induced.addVertex(v);
+
+            for(const Edge<V>& edge : edges) {
+                if(set.contains(edge.getSource()) && set.contains(edge.getDestination())) 
+                    induced.addEdge(edge);
+            }
+
+            return induced;
+        }
+
+        Graph<V> induce(const ArrayList<Edge<V>>& set) const {
+            Graph<V> induced(directed);
+
+            for(const Edge<V>& edge : set) {
+                if (edges.contains(edge)) {
+                    induced.addVertex(edge.getSource());
+                    induced.addVertex(edge.getDestination());
+                    induced.addEdge(edge);
+                }
+            }
+
+            return induced;
+        }
+
+        void contract(const ArrayList<V>& set) {
+            V remaining = set[0];
+            hyper.put(remaining, induce(set));
+
+            for(const V& v : set) {
+                this->contract(remaining, v);
+            }
+        }
+
+        void contract(const V& src, const V& dest) {
+            if(!adj.contains(src) || !adj.contains(dest)) 
+                throw std::invalid_argument("The given vertices do not exist in the graph.");
+
+            if(src != dest) {
+                Set<V> srcSet = adj[src];
+                Set<V> destSet = adj[dest];
+
+                for(const V& v : srcSet) {
+                    if(v != dest) {
+                        adj[dest].add(v);
+                        if(!directed) adj[v].add(dest);
+                    }
+                }
+
+                if(directed) {
+                    for(const V& v : adj.keys()) {
+                        if(adj[v].pop(src)) adj[v].add(dest);
+                    }
+                } else {
+                    for(const V& v : destSet) adj[v].pop(src);
+                }
+
+                adj.remove(src);
+                removeEdge(src, dest);
+
+                for(int i = 0; i < edges.size(); ++i) {
+                    if(edges[i].getSource() == src) edges[i].setSource(dest);
+                    if(edges[i].getDestination() == src) edges[i].setDestination(dest);
+                }
+            }
+        }
+
         ArrayList<V> base() const {
             ArrayList<V> base;
             ArrayList<V> vertices = adj.keys();
@@ -421,7 +453,7 @@ template <class V> class Graph {
             if(directed) {
                 ArrayList<ArrayList<V>> sccs = this->stronglyConnectedComponents();
                 
-                Graph<int> hyperGraph(true);
+                Graph<int> hyperGraph(true); 
                 Map<V, int> vertexToHypervertex;
                 
                 for (int i = 0; i < sccs.size(); ++i) {
@@ -533,7 +565,7 @@ template <class V> class Graph {
             return strm << graph.adj << std::endl;
         }
 
-        Set<V> operator[](const V& vertex) const {
+        const Set<V>& operator[](const V& vertex) const {
             return adj.get(vertex);
         }
 

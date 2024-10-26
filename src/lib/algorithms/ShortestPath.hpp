@@ -36,7 +36,7 @@ template <class V> class Graph;
  */
 template <class V> class ShortestPath {
     private:
-        const Set<Edge<V>> edges;        /**< The set of edges in the graph. */
+        const Set<Edge<V>>& edges;       /**< The set of edges in the graph. */
         const Graph<V>& graph;           /**< A reference to the graph object. */
 
         /**
@@ -51,7 +51,7 @@ template <class V> class ShortestPath {
          */
         void bellmanFord(Map<V, double>& distances, Map<V, V>& parents) const {
             for(int i = 0; i < graph.size() - 1; ++i) {
-                for(Edge<V> edge : edges) {
+                for(const Edge<V>& edge : edges) {
                     if(distances[edge.getSource()] + edge.getWeight() < distances[edge.getDestination()]) {
                         distances[edge.getDestination()] = distances[edge.getSource()] + edge.getWeight();
                         parents[edge.getDestination()] = edge.getSource();
@@ -60,7 +60,7 @@ template <class V> class ShortestPath {
             }
 
             for(int i = 0; i < graph.size() - 1; ++i) {
-                for(Edge<V> edge : edges) {
+                for(const Edge<V>& edge : edges) {
                     if(distances[edge.getSource()] + edge.getWeight() < distances[edge.getDestination()]) {
                         distances[edge.getDestination()] = -std::numeric_limits<double>::infinity();
                         parents[edge.getDestination()] = edge.getSource();

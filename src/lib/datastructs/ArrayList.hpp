@@ -395,7 +395,7 @@ template <class T> class ArrayList {
          * @param index The index of the element to retrieve.
          * @return T The value of the element at the given index.
          */
-        T get(int index) const {
+        const T& get(int index) const {
             return this->array[index];
         }
 

@@ -10,14 +10,13 @@ template <class V> class Graph;
 
 template <class V> class StronglyConnectedComponents {
     private:
-        const Map<V, Set<V>> adj;
-        const bool directed;
+        const Graph<V>& graph;
 
     public:
-        explicit StronglyConnectedComponents(const Graph<V>& graph) : adj(graph.adjacencyList()), directed(graph.isDigraph()) {}
+        explicit StronglyConnectedComponents(const Graph<V>& graph) : graph(graph) {}
 
         ArrayList<ArrayList<V>> stronglyConnectedComponents() const {
-            if(!directed) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
+            if(!graph.isDigraph()) throw std::invalid_argument("The graph hasn't strongly connected components because is not directed.");
 
             int id = 0;
             Map<V, int> ids;
@@ -26,7 +25,7 @@ template <class V> class StronglyConnectedComponents {
 
             Stack<V> stack;
             Stack<V> dfsStack;
-            ArrayList<V> vertices = adj.keys();
+            ArrayList<V> vertices = graph.vertices();
             ArrayList<ArrayList<V>> components;
             for(const V& vertex : vertices) {
                 ids[vertex] = -1;
@@ -47,7 +46,7 @@ template <class V> class StronglyConnectedComponents {
                         V u = dfsStack.peek();
                         bool done = true;
 
-                        for(V w : adj.get(u)) {
+                        for(const V& w : graph[u]) {
                             if(ids[w] == -1) {
                                 dfsStack.push(w);
                                 stack.push(w);

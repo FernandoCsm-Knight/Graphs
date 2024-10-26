@@ -141,7 +141,7 @@ template <typename V> class GraphDescriber {
             for(Edge<V> e : graph.setOfEdges()) 
                 uf.unify(e.getSource(), e.getDestination());
 
-            return uf.numberOfComponents() == 1 && graph.sizeEdges() == graph.size() - 1;
+            return uf.numberOfComponents() == 1 && graph.edgeCount() == graph.size() - 1;
         }
 
         /**
@@ -156,7 +156,7 @@ template <typename V> class GraphDescriber {
             for(Edge<V> e : graph.setOfEdges()) 
                 uf.unify(e.getSource(), e.getDestination());
 
-            return graph.sizeEdges() == graph.size() - uf.numberOfComponents();
+            return graph.edgeCount() == graph.size() - uf.numberOfComponents();
         }
 
         /**

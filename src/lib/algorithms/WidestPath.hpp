@@ -12,7 +12,7 @@ template <class V> class Graph;
 template <class V> class WidestPath {
     private:
         const Graph<V>& graph;
-        Set<Edge<V>> edges;
+        const Set<Edge<V>>& edges;
 
         Map<V, Path<V>> parentsToPath(Map<V, V>& parents, ArrayList<V>& vertices, Map<V, double> weights) const {
             Map<V, Path<V>> map;

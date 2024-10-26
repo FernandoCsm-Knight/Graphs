@@ -10,13 +10,13 @@ template <class V> class Graph;
 
 template <class V> class CycleDetection {
     private:
-        const Map<V, Set<V>> adj;
+        const Graph<V>& graph;
 
         void walkRecurse(const V& v, const V& parent, Map<V, V>& visited, Set<V>& counting, ArrayList<ArrayList<V>>& cycles, bool isomorphic) const {
             visited[v] = parent;
             counting.add(v);
 
-            for(V u : adj.get(v)) {
+            for(const V& u : graph[v]) {
                 if(u != parent) {
                     if(!visited.contains(u)) {
                         walkRecurse(u, v, visited, counting, cycles, isomorphic);
@@ -87,18 +87,18 @@ template <class V> class CycleDetection {
         
 
     public:
-        explicit CycleDetection(const Graph<V> &graph) : adj(graph.adjacencyList()) {}
+        explicit CycleDetection(const Graph<V> &graph) : graph(graph) {}
         
         ArrayList<ArrayList<V>> permutationCycles(bool isomorphic) const {
             ArrayList<ArrayList<V>> uniqueCycles;
             
-            for(int i = 3; i <= adj.size(); ++i) {
-                ArrayList<ArrayList<V>> perms = art::arrangements<V>(adj.keys(), i);
+            for(int i = 3; i <= graph.size(); ++i) {
+                ArrayList<ArrayList<V>> perms = art::arrangements<V>(graph.vertices(), i);
 
                 for(ArrayList<V> perm : perms) {
                     bool found = true;
                     for(int j = 0; j < perm.size() && found; ++j) 
-                        found = adj.get(perm[j]).contains(perm[(j + 1) % perm.size()]);
+                        found = graph[perm[j]].contains(perm[(j + 1) % perm.size()]);
 
                     if(found) {
                         addIfUnique(uniqueCycles, perm, isomorphic);
@@ -114,7 +114,7 @@ template <class V> class CycleDetection {
             Map<V, V> visited;
             Set<V> counting;
 
-            ArrayList<V> vertices = adj.keys();
+            ArrayList<V> vertices = graph.vertices();
             for(const V& start : vertices) {
                 if(!counting.contains(start)) {
                     walkRecurse(start, start, visited, counting, cycles, isomorphic);

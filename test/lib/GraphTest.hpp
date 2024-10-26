@@ -81,7 +81,7 @@ public:
     }
 
     void edgesTest() {
-        bool passed = graph.sizeEdges() == 19;
+        bool passed = graph.edgeCount() == 19;
         logResult("Edges Test", passed);
     }
 
